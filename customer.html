@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Loop — Customer App v3</title>
+<style>
+:root {
+  --ink:#1E4D3B; --mid:#2E7D51; --gold:#D4A843; --gold-l:#E8C77A;
+  --cream:#F5F3EC; --white:#FFFFFF; --muted:#8B9E91; --dim:#4A5E52;
+  --line:#E4E0D4; --tint:#EDE9DC;
+  --seedling:#4A7C59; --rooted:#1E4D3B; --bloom:#8B3A5A; --guardian:#0D5C78;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',Arial,sans-serif;
+  background:#C8C4B6;
+  display:flex;justify-content:center;align-items:flex-start;
+  padding:40px 20px 60px;min-height:100vh;gap:28px;flex-wrap:wrap;
+}
+
+/* ── DEVICE ── */
+.device{display:flex;flex-direction:column;align-items:center;gap:10px;}
+.device-label{font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#6B6357;}
+.phone{
+  width:300px;height:648px;
+  background:#111;border-radius:44px;padding:9px;
+  box-shadow:0 28px 56px rgba(0,0,0,0.35),0 6px 18px rgba(0,0,0,0.2),inset 0 1px 0 rgba(255,255,255,0.06);
+  position:relative;flex-shrink:0;
+}
+.screen{
+  width:100%;height:100%;background:var(--cream);
+  border-radius:36px;overflow:hidden;position:relative;
+  display:flex;flex-direction:column;
+}
+.notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:100px;height:24px;background:#111;border-radius:0 0 14px 14px;z-index:50;}
+.sbar{
+  height:42px;flex-shrink:0;display:flex;align-items:flex-end;
+  justify-content:space-between;padding:0 18px 7px;
+  font-size:11.5px;font-weight:700;color:var(--ink);z-index:10;position:relative;
+}
+.view{flex:1;display:none;flex-direction:column;overflow-y:auto;padding-bottom:70px;}
+.view.active{display:flex;}
+.view::-webkit-scrollbar{display:none;}
+
+/* ── NAVBAR ── */
+.navbar{
+  position:absolute;bottom:0;left:0;right:0;height:68px;
+  background:var(--white);border-top:1px solid var(--line);
+  display:flex;align-items:center;justify-content:space-around;
+  padding:0 4px 14px;z-index:40;border-radius:0 0 36px 36px;
+}
+.nbtn{
+  display:flex;flex-direction:column;align-items:center;gap:2px;
+  background:none;border:none;cursor:pointer;
+  color:var(--muted);font-size:9.5px;font-weight:600;font-family:inherit;
+  padding:4px 10px;border-radius:10px;
+}
+.nbtn.active{color:var(--ink);}
+.nbtn svg{width:20px;height:20px;}
+
+/* ── WALLET CARD ── */
+.wallet-card{
+  margin:0 14px;border-radius:18px;padding:16px 18px 14px;
+  position:relative;overflow:hidden;min-height:118px;
+}
+.wblotch{position:absolute;inset:0;background:var(--ink);border-radius:18px;}
+.wblotch::before{
+  content:'';position:absolute;width:150px;height:150px;border-radius:50%;
+  background:radial-gradient(circle,#2E7D51 0%,transparent 70%);
+  top:-38px;left:-18px;opacity:0.9;
+}
+.wblotch::after{
+  content:'';position:absolute;width:130px;height:130px;border-radius:50%;
+  background:radial-gradient(circle,#2E7D51 0%,transparent 70%);
+  bottom:-28px;right:8px;opacity:0.85;
+}
+.wcontent{position:relative;z-index:1;}
+.wlabel{font-size:9.5px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.5);margin-bottom:5px;}
+.wrow{display:flex;align-items:center;gap:9px;margin-bottom:5px;}
+.wamount{font-size:28px;font-weight:800;color:var(--white);letter-spacing:-1px;font-family:Georgia,serif;}
+.wtier{font-size:10.5px;font-weight:600;color:var(--gold-l);}
+.tbar{height:3px;background:rgba(255,255,255,0.18);border-radius:2px;margin-top:5px;overflow:hidden;}
+.tfill{height:100%;background:var(--gold);border-radius:2px;width:64%;}
+
+/* ── HOME HEADER ── */
+.hdr{display:flex;justify-content:space-between;align-items:flex-start;padding:4px 16px 12px;}
+.hdr-left .greeting{font-size:10.5px;color:var(--muted);}
+.hdr-left .hname{font-size:18px;font-weight:800;color:var(--ink);font-family:Georgia,serif;margin-top:1px;}
+.search-btn{
+  width:34px;height:34px;border-radius:50%;background:var(--white);
+  border:1px solid var(--line);display:flex;align-items:center;justify-content:center;
+  cursor:pointer;flex-shrink:0;margin-top:2px;
+}
+
+/* ── SECTION ── */
+.sec{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 7px;}
+.sec-title{font-size:12.5px;font-weight:700;color:var(--ink);}
+.sec-link{font-size:10.5px;color:var(--mid);font-weight:600;background:none;border:none;cursor:pointer;font-family:inherit;}
+
+/* ── ACTIVITY ROWS ── */
+.arow{
+  display:flex;align-items:center;gap:10px;
+  margin:0 14px 7px;background:var(--white);
+  border-radius:13px;padding:10px 12px;border:1px solid var(--line);
+}
+.aico{width:36px;height:36px;border-radius:10px;background:var(--tint);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px;}
+.abody{flex:1;min-width:0;}
+.aname{font-size:12px;font-weight:700;color:var(--ink);}
+.asub{font-size:10px;color:var(--muted);margin-top:1px;}
+.acoin{font-size:12px;font-weight:800;color:var(--mid);flex-shrink:0;font-family:Georgia,serif;}
+
+/* ── IMPACT ── */
+.igrid{display:flex;gap:7px;margin:0 14px;}
+.istat{flex:1;background:var(--white);border:1px solid var(--line);border-radius:13px;padding:11px 6px;text-align:center;}
+.inum{font-size:17px;font-weight:800;color:var(--ink);font-family:Georgia,serif;}
+.ilbl{font-size:9px;color:var(--muted);margin-top:2px;font-weight:600;}
+
+/* ── SEARCH OVERLAY ── */
+.soverlay{
+  position:absolute;inset:0;background:var(--cream);border-radius:36px;
+  z-index:30;display:none;flex-direction:column;overflow:hidden;
+}
+.soverlay.open{display:flex;}
+.shdr{padding:46px 14px 11px;background:var(--ink);flex-shrink:0;}
+.sback{background:none;border:none;color:var(--gold-l);font-size:10.5px;font-weight:600;cursor:pointer;font-family:inherit;margin-bottom:9px;display:flex;align-items:center;gap:3px;}
+.sbar-input{background:rgba(255,255,255,0.13);border-radius:11px;padding:9px 13px;display:flex;align-items:center;gap:7px;color:rgba(255,255,255,0.45);font-size:12px;font-family:inherit;}
+.sbody{flex:1;overflow-y:auto;padding:12px 14px 18px;}
+.sbody::-webkit-scrollbar{display:none;}
+.toggle-row{display:flex;gap:5px;margin-bottom:11px;background:var(--tint);border-radius:9px;padding:3px;}
+.tbtn{flex:1;padding:6px;border-radius:7px;border:none;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;transition:all 0.15s;}
+.tbtn.active{background:var(--ink);color:var(--white);}
+.tbtn:not(.active){background:none;color:var(--muted);}
+.fscroll{display:flex;gap:5px;overflow-x:auto;padding-bottom:3px;margin-bottom:12px;}
+.fscroll::-webkit-scrollbar{display:none;}
+.chip{padding:5px 12px;border-radius:18px;font-size:10.5px;font-weight:600;white-space:nowrap;cursor:pointer;border:1.5px solid var(--line);background:var(--white);color:var(--dim);font-family:inherit;flex-shrink:0;transition:all 0.15s;}
+.chip.active{background:var(--ink);color:var(--white);border-color:var(--ink);}
+.near-label{font-size:9.5px;font-weight:700;color:var(--muted);margin-bottom:7px;letter-spacing:0.06em;}
+.vresult{display:flex;align-items:center;gap:10px;background:var(--white);border-radius:13px;padding:11px 12px;margin-bottom:7px;border:1px solid var(--line);}
+.rlogo{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;color:var(--white);flex-shrink:0;font-family:Georgia,serif;}
+.rbody{flex:1;min-width:0;}
+.rname{font-size:12px;font-weight:700;color:var(--ink);}
+.rsub{font-size:10px;color:var(--muted);margin-top:1px;}
+.rcoins{display:inline-block;margin-top:3px;background:#EDF7F0;border-radius:5px;padding:1px 6px;font-size:9.5px;font-weight:700;color:var(--mid);}
+.rdist{font-size:10.5px;font-weight:700;color:var(--mid);flex-shrink:0;}
+
+/* ── MAP VIEW ── */
+.map-view{flex:1;display:none;position:relative;background:#D4DEC8;}
+.map-view.active{display:block;}
+.map-bg{width:100%;height:100%;position:relative;overflow:hidden;}
+/* Road network */
+.map-road{position:absolute;background:#E8E2D4;}
+.map-pin{
+  position:absolute;transform:translate(-50%,-100%);
+  display:flex;flex-direction:column;align-items:center;cursor:pointer;
+}
+.pin-bubble{
+  background:var(--ink);color:var(--white);
+  border-radius:10px;padding:4px 9px;font-size:9px;font-weight:700;
+  white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,0.25);
+  font-family:inherit;position:relative;
+}
+.pin-bubble::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);
+  border:5px solid transparent;border-top-color:var(--ink);}
+.pin-bubble.gold{background:var(--gold);color:var(--ink);}
+.map-me{position:absolute;width:14px;height:14px;border-radius:50%;background:#4F8EF7;border:2.5px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.3);}
+
+/* ── FEED ── */
+.feed-card{
+  margin:0 14px 8px;background:var(--white);
+  border-radius:15px;border:1px solid var(--line);overflow:hidden;
+}
+.fc-main{display:flex;align-items:flex-start;gap:9px;padding:11px 12px 10px;}
+.fc-avatar{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:var(--white);flex-shrink:0;font-family:Georgia,serif;}
+.fc-body{flex:1;min-width:0;}
+.fc-name{font-size:12px;font-weight:700;color:var(--ink);}
+.fc-action{font-size:10.5px;color:var(--muted);margin-top:2px;line-height:1.4;}
+.fc-meta{font-size:9.5px;color:var(--muted);margin-top:3px;}
+.fc-coin{font-size:13px;font-weight:800;color:var(--mid);font-family:Georgia,serif;flex-shrink:0;}
+
+/* Peek strip — always visible, tap to expand */
+.fc-peek{
+  height:28px;border-top:1px solid var(--tint);
+  display:flex;align-items:center;justify-content:center;gap:16px;
+  cursor:pointer;background:var(--white);overflow:hidden;
+  transition:height 0.25s ease;position:relative;
+}
+.fc-peek.open{height:auto;}
+.fc-peek-inner{
+  display:flex;gap:6px;padding:8px 12px 10px;width:100%;
+  transition:opacity 0.2s;
+}
+.fc-peek-hint{
+  font-size:9.5px;color:var(--muted);font-weight:600;
+  display:flex;align-items:center;gap:10px;position:absolute;
+}
+.fc-peek.open .fc-peek-hint{display:none;}
+.fc-peek:not(.open) .fc-peek-inner{opacity:0;pointer-events:none;}
+.fc-btn{
+  flex:1;padding:7px 4px;border-radius:8px;border:1px solid var(--line);
+  background:var(--cream);font-size:10px;font-weight:600;color:var(--dim);
+  text-align:center;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:3px;
+}
+.fc-btn.looped{background:#EDF7F0;border-color:#B8DEC8;color:var(--mid);}
+
+/* Accordion */
+.fc-accordion{
+  max-height:0;overflow:hidden;transition:max-height 0.25s ease;
+  background:#F8F7F1;border-top:1px solid var(--tint);
+}
+.fc-accordion.open{max-height:200px;}
+.acc-inner{padding:10px 12px 12px;}
+.acc-header{font-size:10px;font-weight:700;color:var(--mid);margin-bottom:8px;}
+.acc-body{display:flex;align-items:flex-start;gap:9px;}
+.vlogo{width:34px;height:34px;border-radius:9px;background:var(--mid);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:var(--white);flex-shrink:0;font-family:Georgia,serif;}
+.vdetail{flex:1;min-width:0;}
+.vname{font-size:11.5px;font-weight:700;color:var(--ink);}
+.vsub{font-size:9.5px;color:var(--muted);margin-top:1px;line-height:1.4;}
+.vmap{font-size:9.5px;font-weight:700;color:var(--mid);background:none;border:none;cursor:pointer;font-family:inherit;white-space:nowrap;margin-top:4px;display:block;}
+
+/* ── STATUS — full chrome ── */
+.status-screen{
+  width:100%;height:100%;border-radius:36px;overflow:hidden;
+  position:relative;display:flex;flex-direction:column;
+  /* bloom pink full chrome */
+  background:#F2E0E8;
+}
+.status-sbar{
+  height:42px;flex-shrink:0;display:flex;align-items:flex-end;
+  justify-content:space-between;padding:0 18px 7px;
+  font-size:11.5px;font-weight:700;color:var(--bloom);z-index:10;
+}
+.status-view{flex:1;display:flex;flex-direction:column;overflow-y:auto;padding-bottom:70px;}
+.status-view::-webkit-scrollbar{display:none;}
+.status-navbar{
+  position:absolute;bottom:0;left:0;right:0;height:68px;
+  background:#F2E0E8;border-top:1px solid rgba(139,58,90,0.15);
+  display:flex;align-items:center;justify-content:space-around;
+  padding:0 4px 14px;z-index:40;border-radius:0 0 36px 36px;
+}
+.status-nbtn{
+  display:flex;flex-direction:column;align-items:center;gap:2px;
+  background:none;border:none;cursor:pointer;
+  color:rgba(139,58,90,0.4);font-size:9.5px;font-weight:600;font-family:inherit;padding:4px 10px;
+}
+.status-nbtn.active{color:var(--bloom);}
+.status-nbtn svg{width:20px;height:20px;}
+
+/* Tier scroll */
+.tier-scroll{display:flex;gap:7px;padding:0 14px 10px;overflow-x:auto;}
+.tier-scroll::-webkit-scrollbar{display:none;}
+.tcard{
+  flex-shrink:0;width:96px;border-radius:15px;overflow:hidden;
+  border:2px solid transparent;background:#FAF0F4;
+}
+.tcard.current{border-color:var(--bloom);background:#F8E8EF;}
+.tcard-top{padding:13px 10px 9px;text-align:center;background:inherit;}
+.tbadge{
+  width:46px;height:46px;border-radius:50%;margin:0 auto 7px;
+  display:flex;align-items:center;justify-content:center;
+}
+.tname{font-size:10.5px;font-weight:800;font-family:Georgia,serif;}
+.tpts{font-size:8.5px;font-weight:600;opacity:0.65;margin-top:1px;}
+.tbar2{height:3px;}
+
+/* Badge rows */
+.brow{
+  display:flex;align-items:center;gap:10px;
+  margin:0 14px 7px;background:rgba(255,255,255,0.7);
+  border:1px solid rgba(139,58,90,0.12);border-radius:13px;padding:10px 12px;
+}
+.bcircle{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.bbody{flex:1;}
+.bname{font-size:12px;font-weight:700;color:#5A1F38;}
+.bdesc{font-size:10px;color:rgba(139,58,90,0.6);margin-top:1px;}
+.brow.locked .bname,.brow.locked .bdesc{color:rgba(139,58,90,0.35);}
+.brow.locked .bcircle{opacity:0.35;filter:grayscale(1);}
+.sec-bloom{display:flex;align-items:center;justify-content:space-between;padding:12px 16px 6px;}
+.sec-bloom .sec-title{color:#5A1F38;}
+
+/* ── CARD PHONE ── */
+.card-screen{width:100%;height:100%;border-radius:36px;overflow:hidden;position:relative;display:flex;flex-direction:column;background:var(--cream);}
+.card-view{flex:1;display:flex;flex-direction:column;overflow-y:auto;padding-bottom:70px;}
+.card-view::-webkit-scrollbar{display:none;}
+.linked-card{
+  margin:0 14px;border-radius:17px;padding:18px;
+  position:relative;overflow:hidden;min-height:118px;
+}
+.lcbg{position:absolute;inset:0;background:var(--ink);border-radius:17px;}
+.lcbg::before{content:'';position:absolute;width:150px;height:150px;border-radius:50%;background:radial-gradient(circle,#2E7D51 0%,transparent 65%);top:-45px;right:-15px;opacity:0.8;}
+.lcc{position:relative;z-index:1;}
+.cchip{width:26px;height:20px;border-radius:4px;background:var(--gold);margin-bottom:16px;opacity:0.9;}
+.cnum{font-family:'Courier New',monospace;font-size:13px;font-weight:700;color:var(--white);letter-spacing:0.14em;margin-bottom:7px;}
+.crow{display:flex;justify-content:space-between;font-size:9.5px;font-weight:600;color:rgba(255,255,255,0.5);}
+.cstat-row{display:flex;justify-content:space-between;align-items:center;margin:8px 14px 0;background:var(--white);border:1px solid var(--line);border-radius:11px;padding:9px 13px;}
+.csl{font-size:10.5px;color:var(--muted);font-weight:600;}
+.csv{font-size:10.5px;color:var(--ink);font-weight:700;}
+.csv.green{color:var(--mid);}
+.qr-sec{margin:11px 14px 0;background:var(--white);border-radius:17px;padding:16px;border:1px solid var(--line);display:flex;flex-direction:column;align-items:center;gap:9px;}
+.qr-balance{font-size:10.5px;font-weight:700;color:var(--mid);text-align:center;}
+.qr-balance span{font-family:Georgia,serif;font-size:17px;color:var(--ink);display:block;margin-top:2px;}
+.qr-box{width:104px;height:104px;border-radius:11px;background:var(--ink);display:flex;align-items:center;justify-content:center;}
+.qr-sub{font-size:9.5px;color:var(--muted);text-align:center;line-height:1.5;}
+</style>
+
+<style>
+.loop-nav{
+  position:fixed;bottom:0;left:0;right:0;z-index:9999;
+  background:#1E4D3B;display:flex;justify-content:space-around;
+  align-items:center;padding:10px 0 14px;
+  box-shadow:0 -2px 12px rgba(0,0,0,0.25);
+  font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif;
+}
+.loop-nav a{
+  color:rgba(255,255,255,0.5);font-size:10px;font-weight:700;
+  text-decoration:none;display:flex;flex-direction:column;align-items:center;gap:3px;
+  letter-spacing:0.05em;text-transform:uppercase;
+}
+.loop-nav a.active{color:#D4A843;}
+.loop-nav a svg{width:18px;height:18px;}
+</style>
+</head>
+<body>
+
+<!-- ════════════════════ PHONE 1: HOME ════════════════════ -->
+<div class="device">
+  <div class="device-label">Home · Discover</div>
+  <div class="phone">
+    <div class="screen" id="home-screen">
+      <div class="notch"></div>
+
+      <!-- HOME VIEW -->
+      <div class="view active" id="v-home">
+        <div class="sbar"><span>9:41</span><span style="font-family:Georgia,serif;font-size:12px;font-weight:800;">Loop</span><span>100%</span></div>
+        <div class="hdr">
+          <div class="hdr-left">
+            <div class="greeting">Good afternoon</div>
+            <div class="hname">Maya</div>
+          </div>
+          <button class="search-btn" onclick="openSearch()" aria-label="Search vendors">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#1E4D3B" stroke-width="2.2" stroke-linecap="round"><circle cx="10" cy="10" r="7"/><path d="M16 16l4 4"/></svg>
+          </button>
+        </div>
+
+        <div class="wallet-card">
+          <div class="wblotch"></div>
+          <div class="wcontent">
+            <div class="wlabel">Loop balance</div>
+            <div class="wrow">
+              <svg width="34" height="34" viewBox="0 0 34 34">
+                <circle cx="11" cy="12" r="8" fill="none" stroke="#D4A843" stroke-width="2.4"/>
+                <circle cx="23" cy="12" r="8" fill="none" stroke="#D4A843" stroke-width="2.4"/>
+                <circle cx="17" cy="23" r="8" fill="none" stroke="#D4A843" stroke-width="2.4"/>
+              </svg>
+              <span class="wamount">2,340</span>
+            </div>
+            <div class="wtier">Sapling · 660 hoops to Rooted</div>
+            <div class="tbar"><div class="tfill"></div></div>
+          </div>
+        </div>
+
+        <div class="sec"><span class="sec-title">This week</span><button class="sec-link">See all</button></div>
+        <div class="arow"><div class="aico">☕</div><div class="abody"><div class="aname">Riverside Coffee Co.</div><div class="asub">Reusable cup · Today, 8:14 AM</div></div><div class="acoin">+10</div></div>
+        <div class="arow"><div class="aico">🚌</div><div class="abody"><div class="aname">Metro Transit</div><div class="asub">Transit trip · Yesterday</div></div><div class="acoin">+8</div></div>
+        <div class="arow"><div class="aico">♻️</div><div class="abody"><div class="aname">EcoDepot Recycling</div><div class="asub">Battery drop-off · Mon</div></div><div class="acoin">+50</div></div>
+
+        <div class="sec"><span class="sec-title">Your impact</span></div>
+        <div class="igrid">
+          <div class="istat"><div class="inum">214</div><div class="ilbl">cups reused</div></div>
+          <div class="istat"><div class="inum">38</div><div class="ilbl">transit trips</div></div>
+          <div class="istat"><div class="inum">61kg</div><div class="ilbl">CO₂e saved</div></div>
+        </div>
+      </div>
+
+      <!-- SEARCH OVERLAY -->
+      <div class="soverlay" id="search-overlay">
+        <div class="shdr">
+          <button class="sback" onclick="closeSearch()">← Back</button>
+          <div class="sbar-input">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="10" cy="10" r="7"/><path d="M16 16l4 4"/></svg>
+            Search vendors, actions, areas…
+          </div>
+        </div>
+        <div class="sbody">
+          <div class="toggle-row">
+            <button class="tbtn active" onclick="showListView(this)">List</button>
+            <button class="tbtn" onclick="showMapView(this)">🗺 Map</button>
+          </div>
+          <div class="fscroll">
+            <button class="chip active" onclick="setChip(this)">All</button>
+            <button class="chip" onclick="setChip(this)">☕ Coffee</button>
+            <button class="chip" onclick="setChip(this)">🛒 Grocery</button>
+            <button class="chip" onclick="setChip(this)">🚌 Transit</button>
+            <button class="chip" onclick="setChip(this)">♻️ Recycling</button>
+            <button class="chip" onclick="setChip(this)">🏪 Retail</button>
+          </div>
+
+          <!-- LIST -->
+          <div id="list-results">
+            <div class="near-label">NEARBY · 8 VENDORS</div>
+            <div class="vresult"><div class="rlogo" style="background:#2E7D51;">R</div><div class="rbody"><div class="rname" onclick="openVendorProfile()" style="cursor:pointer;">Riverside Coffee Co.</div><div class="rsub">Coffee · 128 Water St</div><span class="rcoins">☕ Reusable cup +10 hoops</span></div><div class="rdist">0.3km</div></div>
+            <div class="vresult"><div class="rlogo" style="background:#1E4D3B;">E</div><div class="rbody"><div class="rname" onclick="openVendorProfile()" style="cursor:pointer;">EcoDepot Recycling</div><div class="rsub">Recycling · 44 Clark Dr</div><span class="rcoins">♻️ Drop-off +50 hoops</span></div><div class="rdist">0.8km</div></div>
+            <div class="vresult"><div class="rlogo" style="background:#4A7C59;">G</div><div class="rbody"><div class="rname" onclick="openVendorProfile()" style="cursor:pointer;">Green Grocer Market</div><div class="rsub">Grocery · 210 Main St</div><span class="rcoins">🛍 Own bag +15 hoops</span></div><div class="rdist">1.1km</div></div>
+            <div class="vresult"><div class="rlogo" style="background:#0D5C78;">M</div><div class="rbody"><div class="rname" onclick="openVendorProfile()" style="cursor:pointer;">Metro Transit</div><div class="rsub">Transit · City-wide</div><span class="rcoins">🚌 Trip +8 hoops</span></div><div class="rdist">Nearby</div></div>
+          </div>
+
+          <!-- MAP -->
+          <div id="map-results" style="display:none;border-radius:14px;overflow:hidden;height:340px;position:relative;">
+            <div class="map-bg">
+              <!-- Street grid -->
+              <svg width="100%" height="340" viewBox="0 0 272 340" xmlns="http://www.w3.org/2000/svg">
+                <rect width="272" height="340" fill="#D8E4CC"/>
+                <!-- Parks -->
+                <rect x="30" y="40" width="60" height="50" rx="6" fill="#C2D9A8" opacity="0.8"/>
+                <rect x="170" y="180" width="50" height="45" rx="5" fill="#C2D9A8" opacity="0.8"/>
+                <!-- Main roads -->
+                <rect x="0" y="110" width="272" height="14" fill="#E8E2D4"/>
+                <rect x="0" y="210" width="272" height="14" fill="#E8E2D4"/>
+                <rect x="95" y="0" width="14" height="340" fill="#E8E2D4"/>
+                <rect x="185" y="0" width="14" height="340" fill="#E8E2D4"/>
+                <!-- Secondary roads -->
+                <rect x="0" y="60" width="272" height="8" fill="#DDD8CC"/>
+                <rect x="0" y="160" width="272" height="8" fill="#DDD8CC"/>
+                <rect x="0" y="265" width="272" height="8" fill="#DDD8CC"/>
+                <rect x="45" y="0" width="8" height="340" fill="#DDD8CC"/>
+                <rect x="140" y="0" width="8" height="340" fill="#DDD8CC"/>
+                <rect x="230" y="0" width="8" height="340" fill="#DDD8CC"/>
+                <!-- City blocks -->
+                <rect x="9" y="9" width="34" height="49" rx="3" fill="#EAE4D8" opacity="0.7"/>
+                <rect x="55" y="9" width="38" height="49" rx="3" fill="#EAE4D8" opacity="0.7"/>
+                <rect x="109" y="9" width="29" height="49" rx="3" fill="#EAE4D8" opacity="0.7"/>
+                <rect x="150" y="9" width="33" height="49" rx="3" fill="#EAE4D8" opacity="0.7"/>
+                <rect x="199" y="9" width="29" height="49" rx="3" fill="#EAE4D8" opacity="0.7"/>
+                <rect x="240" y="9" width="26" height="49" rx="3" fill="#EAE4D8" opacity="0.7"/>
+                <rect x="9" y="70" width="34" height="38" rx="3" fill="#EAE4D8" opacity="0.7"/>
+                <rect x="55" y="70" width="38" height="38" rx="3" fill="#EAE4D8" opacity="0.7"/>
+                <rect x="109" y="70" width="74" height="38" rx="3" fill="#EAE4D8" opacity="0.7"/>
+                <rect x="199" y="70" width="65" height="38" rx="3" fill="#EAE4D8" opacity="0.7"/>
+                <rect x="9" y="125" width="84" height="33" rx="3" fill="#EAE4D8" opacity="0.7"/>
+                <rect x="109" y="125" width="74" height="33" rx="3" fill="#EAE4D8" opacity="0.7"/>
+                <rect x="199" y="125" width="65" height="33" rx="3" fill="#EAE4D8" opacity="0.7"/>
+                <rect x="9" y="170" width="84" height="38" rx="3" fill="#EAE4D8" opacity="0.7"/>
+                <rect x="109" y="170" width="29" height="38" rx="3" fill="#EAE4D8" opacity="0.7"/>
+                <rect x="150" y="170" width="33" height="38" rx="3" fill="#EAE4D8" opacity="0.7"/>
+                <rect x="240" y="170" width="26" height="38" rx="3" fill="#EAE4D8" opacity="0.7"/>
+                <rect x="9" y="225" width="34" height="38" rx="3" fill="#EAE4D8" opacity="0.7"/>
+                <rect x="55" y="225" width="38" height="38" rx="3" fill="#EAE4D8" opacity="0.7"/>
+                <rect x="109" y="225" width="74" height="38" rx="3" fill="#EAE4D8" opacity="0.7"/>
+                <rect x="199" y="225" width="65" height="38" rx="3" fill="#EAE4D8" opacity="0.7"/>
+                <rect x="9" y="275" width="34" height="55" rx="3" fill="#EAE4D8" opacity="0.7"/>
+                <rect x="55" y="275" width="38" height="55" rx="3" fill="#EAE4D8" opacity="0.7"/>
+                <rect x="109" y="275" width="74" height="55" rx="3" fill="#EAE4D8" opacity="0.7"/>
+                <rect x="199" y="275" width="65" height="55" rx="3" fill="#EAE4D8" opacity="0.7"/>
+              </svg>
+
+              <!-- Map pins positioned absolutely -->
+              <div class="map-pin" style="left:38%;top:35%;cursor:pointer;" onclick="openVendorProfile()">
+                <div class="pin-bubble gold">☕ +10</div>
+              </div>
+              <div class="map-pin" style="left:72%;top:58%;">
+                <div class="pin-bubble">♻️ +50</div>
+              </div>
+              <div class="map-pin" style="left:22%;top:72%;">
+                <div class="pin-bubble">🛒 +15</div>
+              </div>
+              <div class="map-pin" style="left:60%;top:20%;">
+                <div class="pin-bubble">🚌 +8</div>
+              </div>
+              <div class="map-pin" style="left:82%;top:82%;">
+                <div class="pin-bubble">🏪 +25</div>
+              </div>
+              <!-- You are here -->
+              <div class="map-me" style="position:absolute;left:42%;top:55%;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- VENDOR PROFILE OVERLAY -->
+      <div id="vendor-profile" style="position:absolute;inset:0;z-index:100;display:none;align-items:flex-end;justify-content:center;background:rgba(0,0,0,0.45);border-radius:36px;overflow:hidden;">
+        <button onclick="document.getElementById('vendor-profile').style.display='none'" style="position:absolute;top:14px;right:14px;z-index:200;background:rgba(0,0,0,0.5);border:none;border-radius:50%;width:28px;height:28px;color:white;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:inherit;line-height:1;pointer-events:all;">&#10005;</button>
+        <div style="background:#F5F3EC;border-radius:22px 22px 0 0;width:100%;max-height:88%;overflow-y:auto;pointer-events:all;">
+          <div style="width:36px;height:4px;background:#E4E0D4;border-radius:2px;margin:11px auto 0;"></div>
+          <div style="position:relative;height:88px;margin:10px 13px 0;border-radius:15px;overflow:hidden;">
+            <div style="position:absolute;inset:0;background:#1E4D3B;"></div>
+            <div style="position:absolute;width:130px;height:130px;border-radius:50%;background:radial-gradient(circle,#2E7D51 0%,transparent 70%);top:-38px;left:-18px;opacity:0.9;"></div>
+            <div style="position:absolute;width:110px;height:110px;border-radius:50%;background:radial-gradient(circle,#2E7D51 0%,transparent 70%);bottom:-28px;right:8px;opacity:0.85;"></div>
+            <div style="position:relative;z-index:1;padding:13px;">
+              <div style="width:38px;height:38px;border-radius:11px;background:rgba(255,255,255,0.15);border:1.5px solid rgba(212,168,67,0.5);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;color:#D4A843;font-family:Georgia,serif;margin-bottom:6px;">R</div>
+              <div style="font-size:14px;font-weight:800;color:white;font-family:Georgia,serif;">Riverside Coffee Co.</div>
+              <div style="font-size:9.5px;color:rgba(255,255,255,0.5);margin-top:1px;">Coffee · 128 Water St, Vancouver</div>
+            </div>
+
+          </div>
+          <div style="margin:9px 13px 0;display:flex;align-items:center;gap:5px;background:#EDE9DC;border-radius:9px;padding:7px 11px;">
+            <span style="font-size:9.5px;font-weight:700;color:#2E7D51;">Loop-verified green vendor</span>
+            <span style="font-size:8.5px;color:#8B9E91;margin-left:auto;">Since Jan 2026</span>
+          </div>
+          <div style="margin:11px 13px 0;"><div style="font-size:10.5px;font-weight:700;color:#1E4D3B;margin-bottom:4px;">About</div><div style="font-size:10px;color:#8B9E91;line-height:1.6;">A neighbourhood coffee shop committed to reducing waste. We compost grounds, source sustainable beans, and partner with local bike couriers.</div></div>
+          <div style="margin:11px 13px 0;"><div style="font-size:10.5px;font-weight:700;color:#1E4D3B;margin-bottom:6px;">Green initiatives</div><div style="font-size:10px;color:#4A5E52;line-height:1.8;">🌱 100% compostable packaging<br>☀️ Solar-powered since 2024<br>🚲 Bike-only delivery with Mobi<br>♻️ Grounds composted with city</div></div>
+          <div style="margin:11px 13px 0;"><div style="font-size:10.5px;font-weight:700;color:#1E4D3B;margin-bottom:6px;">Earn hoops here</div>
+            <div style="display:flex;flex-direction:column;gap:5px;">
+              <div style="display:flex;align-items:center;justify-content:space-between;background:white;border:1px solid #E4E0D4;border-radius:10px;padding:8px 10px;"><span style="font-size:10.5px;font-weight:600;color:#1E4D3B;">☕ Reusable cup</span><span style="font-size:11px;font-weight:800;color:#2E7D51;font-family:Georgia,serif;">+10</span></div>
+              <div style="display:flex;align-items:center;justify-content:space-between;background:white;border:1px solid #E4E0D4;border-radius:10px;padding:8px 10px;"><span style="font-size:10.5px;font-weight:600;color:#1E4D3B;">🌱 Organic beans</span><span style="font-size:11px;font-weight:800;color:#2E7D51;font-family:Georgia,serif;">+8</span></div>
+              <div style="display:flex;align-items:center;justify-content:space-between;background:white;border:1px solid #E4E0D4;border-radius:10px;padding:8px 10px;"><span style="font-size:10.5px;font-weight:600;color:#1E4D3B;">🪑 Dine in</span><span style="font-size:11px;font-weight:800;color:#2E7D51;font-family:Georgia,serif;">+2</span></div>
+            </div>
+          </div>
+          <div style="margin:11px 13px 0;"><div style="font-size:10.5px;font-weight:700;color:#1E4D3B;margin-bottom:6px;">Redeem hoops here</div>
+            <div style="display:flex;flex-direction:column;gap:5px;">
+              <div style="background:white;border:1px solid #E4E0D4;border-radius:10px;padding:8px 10px;"><div style="display:flex;justify-content:space-between;margin-bottom:1px;"><span style="font-size:10.5px;font-weight:700;color:#1E4D3B;">Free pastry</span><span style="font-size:10px;font-weight:800;color:#D4A843;font-family:Georgia,serif;">500 hoops</span></div><div style="font-size:9px;color:#8B9E91;">Any pastry from our daily bake</div></div>
+              <div style="background:white;border:1px solid #E4E0D4;border-radius:10px;padding:8px 10px;"><div style="display:flex;justify-content:space-between;margin-bottom:1px;"><span style="font-size:10.5px;font-weight:700;color:#1E4D3B;">$5 off order</span><span style="font-size:10px;font-weight:800;color:#D4A843;font-family:Georgia,serif;">400 hoops</span></div><div style="font-size:9px;color:#8B9E91;">Applied at checkout</div></div>
+              <div style="background:#F5FDF7;border:1px solid #B8DEC8;border-radius:10px;padding:8px 10px;"><div style="display:flex;justify-content:space-between;"><span style="font-size:10.5px;font-weight:700;color:#1E4D3B;">Summer: free cold brew</span><span style="font-size:10px;font-weight:800;color:#D4A843;font-family:Georgia,serif;">300 hoops</span></div><div style="font-size:9px;color:#8B9E91;">Until Aug 31</div></div>
+            </div>
+          </div>
+          <div style="margin:11px 13px 16px;background:#1E4D3B;border-radius:12px;padding:11px 13px;display:flex;align-items:center;justify-content:space-between;"><div><div style="font-size:10.5px;font-weight:700;color:white;">128 Water St, Vancouver</div><div style="font-size:9px;color:rgba(255,255,255,0.5);margin-top:1px;">Mon-Fri 7am-6pm</div></div><div style="font-size:9.5px;font-weight:700;color:#D4A843;">0.3km</div></div>
+        </div>
+      </div>
+
+      <div class="navbar">
+        <button class="nbtn active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 11l9-8 9 8M5 10v10h5v-5h4v5h5V10"/></svg>Home</button>
+        <button class="nbtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>Feed</button>
+        <button class="nbtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="5"/><path d="M9 13l-2 7 5-3 5 3-2-7"/></svg>Status</button>
+        <button class="nbtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>Card</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════ PHONE 2: FEED ════════════════════ -->
+<div class="device">
+  <div class="device-label">Feed</div>
+  <div class="phone">
+    <div class="screen">
+      <div class="notch"></div>
+      <div class="view active">
+        <div class="sbar"><span>9:41</span><span style="font-family:Georgia,serif;font-size:12px;font-weight:800;">Loop</span><span>100%</span></div>
+        <div style="padding:2px 16px 11px;font-size:18px;font-weight:800;color:var(--ink);font-family:Georgia,serif;">Friends</div>
+
+        <!-- Card 1 -->
+        <div class="feed-card" id="fc1">
+          <div class="fc-main">
+            <div class="fc-avatar" style="background:#4A7C59;">S</div>
+            <div class="fc-body">
+              <div class="fc-name">Sarah K.</div>
+              <div class="fc-action">Recycled batteries at <strong>EcoDepot</strong></div>
+              <div class="fc-meta">2 hours ago · 3 Looped it</div>
+            </div>
+            <div class="fc-coin">+50</div>
+          </div>
+          <div class="fc-peek" id="peek1" onclick="toggleCard('fc1','peek1','acc1')">
+            <span class="fc-peek-hint">♥ &nbsp;⟳ &nbsp;💬</span>
+            <div class="fc-peek-inner">
+              <button class="fc-btn">♥ Like</button>
+              <button class="fc-btn looped">⟳ Looped it</button>
+              <button class="fc-btn">💬 Comment</button>
+            </div>
+          </div>
+          <div class="fc-accordion" id="acc1">
+            <div class="acc-inner">
+              <div class="acc-header">▴ EcoDepot Recycling</div>
+              <div class="acc-body">
+                <div class="vlogo" style="background:#1E4D3B;">E</div>
+                <div class="vdetail">
+                  <div class="vname">EcoDepot Recycling</div>
+                  <div class="vsub">44 Clark Dr · ♻️ Battery drop-off +50<br>🔋 Electronics drop-off +30<br>🎁 Offer: free compost bag at 200 coins</div>
+                  <button class="vmap">View on map →</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 2 -->
+        <div class="feed-card" id="fc2">
+          <div class="fc-main">
+            <div class="fc-avatar" style="background:#0D5C78;">J</div>
+            <div class="fc-body">
+              <div class="fc-name">James T.</div>
+              <div class="fc-action">Brought reusable cup to <strong>Riverside Coffee</strong></div>
+              <div class="fc-meta">4 hours ago · 7 Looped it</div>
+            </div>
+            <div class="fc-coin">+10</div>
+          </div>
+          <div class="fc-peek" id="peek2" onclick="toggleCard('fc2','peek2','acc2')">
+            <span class="fc-peek-hint">♥ &nbsp;⟳ &nbsp;💬</span>
+            <div class="fc-peek-inner">
+              <button class="fc-btn">♥ Like</button>
+              <button class="fc-btn looped">⟳ Looped it</button>
+              <button class="fc-btn">💬 Comment</button>
+            </div>
+          </div>
+          <div class="fc-accordion" id="acc2">
+            <div class="acc-inner">
+              <div class="acc-header">▴ Riverside Coffee Co.</div>
+              <div class="acc-body">
+                <div class="vlogo" style="background:#2E7D51;">R</div>
+                <div class="vdetail">
+                  <div class="vname">Riverside Coffee Co.</div>
+                  <div class="vsub">128 Water St · ☕ Reusable cup +10 hoops<br>🥤 Compostable lid skip +5<br>🎁 Offer: free pastry at 500 coins</div>
+                  <button class="vmap">View on map →</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 3 -->
+        <div class="feed-card" id="fc3">
+          <div class="fc-main">
+            <div class="fc-avatar" style="background:#8B3A5A;">A</div>
+            <div class="fc-body">
+              <div class="fc-name">Aisha M.</div>
+              <div class="fc-action">Biked to work via <strong>Mobi Bike Share</strong></div>
+              <div class="fc-meta">Yesterday · 12 Looped it</div>
+            </div>
+            <div class="fc-coin">+20</div>
+          </div>
+          <div class="fc-peek" id="peek3" onclick="toggleCard('fc3','peek3','acc3')">
+            <span class="fc-peek-hint">♥ &nbsp;⟳ &nbsp;💬</span>
+            <div class="fc-peek-inner">
+              <button class="fc-btn">♥ Like</button>
+              <button class="fc-btn">⟳ Looped it</button>
+              <button class="fc-btn">💬 Comment</button>
+            </div>
+          </div>
+          <div class="fc-accordion" id="acc3">
+            <div class="acc-inner">
+              <div class="acc-header">▴ Mobi Bike Share</div>
+              <div class="acc-body">
+                <div class="vlogo" style="background:#4A7C59;">M</div>
+                <div class="vdetail">
+                  <div class="vname">Mobi Bike Share</div>
+                  <div class="vsub">City-wide · 🚲 Any trip +20<br>🚲 30+ min trip +35<br>🎁 Offer: free day pass at 800 coins</div>
+                  <button class="vmap">View on map →</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="navbar">
+        <button class="nbtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 11l9-8 9 8M5 10v10h5v-5h4v5h5V10"/></svg>Home</button>
+        <button class="nbtn active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>Feed</button>
+        <button class="nbtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="5"/><path d="M9 13l-2 7 5-3 5 3-2-7"/></svg>Status</button>
+        <button class="nbtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>Card</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════ PHONE 3: STATUS (full Bloom chrome) ════════════════════ -->
+<div class="device">
+  <div class="device-label">Status — Bloom tier</div>
+  <div class="phone">
+    <div class="status-screen">
+      <div class="notch" style="background:#5A1F38;"></div>
+      <div class="status-sbar"><span>9:41</span><span style="font-family:Georgia,serif;font-size:12px;font-weight:800;">Loop</span><span>100%</span></div>
+      <div class="status-view">
+        <div style="padding:2px 16px 11px;font-size:18px;font-weight:800;color:#5A1F38;font-family:Georgia,serif;">Status</div>
+
+        <div class="tier-scroll">
+          <!-- Seedling -->
+          <div class="tcard" style="background:#F0F7F3;">
+            <div class="tcard-top">
+              <div class="tbadge" style="background:radial-gradient(circle at 38% 28%,#6BA882,#4A7C59);">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><path d="M12 22V12M12 12C12 7 7 4 4 6c0 4 3 7 8 6M12 12C12 7 17 4 20 6c0 4-3 7-8 6"/></svg>
+              </div>
+              <div class="tname" style="color:#4A7C59;">Seedling</div>
+              <div class="tpts" style="color:#4A7C59;">0–999</div>
+            </div>
+            <div class="tbar2" style="background:#4A7C59;"></div>
+          </div>
+          <!-- Rooted -->
+          <div class="tcard" style="background:#E8F5EE;">
+            <div class="tcard-top">
+              <div class="tbadge" style="background:radial-gradient(circle at 35% 25%,#52C87A,#1E4D3B);">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="white" stroke="none"><path d="M12 2L6 10h3l-4 7h5v5h4v-5h5l-4-7h3L12 2z"/></svg>
+              </div>
+              <div class="tname" style="color:#1E4D3B;">Rooted</div>
+              <div class="tpts" style="color:#1E4D3B;">1k–1.9k</div>
+            </div>
+            <div class="tbar2" style="background:#1E4D3B;"></div>
+          </div>
+          <!-- Bloom — current -->
+          <div class="tcard current" style="background:#F8E8EF;border-color:#8B3A5A;">
+            <div class="tcard-top">
+              <div class="tbadge" style="background:radial-gradient(circle at 38% 28%,#E87FAD,#8B3A5A);">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="white" stroke="none"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="5" r="2.5"/><circle cx="12" cy="19" r="2.5"/><circle cx="5" cy="12" r="2.5"/><circle cx="19" cy="12" r="2.5"/><circle cx="7.5" cy="7.5" r="2"/><circle cx="16.5" cy="7.5" r="2"/><circle cx="7.5" cy="16.5" r="2"/><circle cx="16.5" cy="16.5" r="2"/></svg>
+              </div>
+              <div class="tname" style="color:#8B3A5A;">Bloom ✦</div>
+              <div class="tpts" style="color:#8B3A5A;">2k–4.9k</div>
+            </div>
+            <div class="tbar2" style="background:#8B3A5A;"></div>
+          </div>
+          <!-- Earth Guardian -->
+          <div class="tcard" style="background:#EEF8FC;">
+            <div class="tcard-top">
+              <div class="tbadge" style="background:radial-gradient(circle at 38% 28%,#2ABCDC,#0D5C78);">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="white" stroke="none"><path d="M12 2a10 10 0 100 20A10 10 0 0012 2zm0 2c1.2 0 2.4.9 3.4 2.5H8.6C9.6 4.9 10.8 4 12 4zm-5.8 4h11.6c.4.9.7 1.9.8 3H5.4c.1-1.1.4-2.1.8-3zM4 12h16c0 1.1-.2 2.1-.5 3H4.5A10 10 0 014 12zm1.5 5h13a8 8 0 01-13 0z"/></svg>
+              </div>
+              <div class="tname" style="color:#0D5C78;">Guardian</div>
+              <div class="tpts" style="color:#0D5C78;">5k+</div>
+            </div>
+            <div class="tbar2" style="background:#0D5C78;"></div>
+          </div>
+        </div>
+
+        <div class="sec-bloom"><span class="sec-title">Earned badges</span></div>
+        <div class="brow">
+          <div class="bcircle" style="background:radial-gradient(circle at 38% 28%,#E87FAD,#8B3A5A);">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><path d="M7 19H5a2 2 0 01-2-2V7a2 2 0 012-2h2m10 0h2a2 2 0 012 2v10a2 2 0 01-2 2h-2M9 5l3-3 3 3M9 19l3 3 3-3"/></svg>
+          </div>
+          <div class="bbody"><div class="bname">Recycling Regular</div><div class="bdesc">50 confirmed drop-offs</div></div>
+        </div>
+        <div class="brow">
+          <div class="bcircle" style="background:radial-gradient(circle at 38% 28%,#E87FAD,#8B3A5A);">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><path d="M18 8h1a4 4 0 010 8h-1M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/></svg>
+          </div>
+          <div class="bbody"><div class="bname">Cup Crusader</div><div class="bdesc">100 reusable cup visits</div></div>
+        </div>
+        <div class="brow">
+          <div class="bcircle" style="background:radial-gradient(circle at 38% 28%,#E87FAD,#8B3A5A);">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><circle cx="5.5" cy="17.5" r="3.5"/><circle cx="18.5" cy="17.5" r="3.5"/><path d="M5.5 17.5L10 8h4l4.5 9.5M10 8l3 5h5.5M10 8H7"/></svg>
+          </div>
+          <div class="bbody"><div class="bname">Bloom Cyclist</div><div class="bdesc">25 Mobi bike trips</div></div>
+        </div>
+        <div class="sec-bloom" style="padding-top:6px;"><span class="sec-title" style="color:rgba(139,58,90,0.45);">Almost there</span></div>
+        <div class="brow locked">
+          <div class="bcircle" style="background:radial-gradient(circle at 38% 28%,#2ABCDC,#0D5C78);">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><path d="M12 2a10 10 0 100 20A10 10 0 0012 2z"/><path d="M12 8v4l3 3"/></svg>
+          </div>
+          <div class="bbody"><div class="bname">Earth Guardian</div><div class="bdesc">Reach 5,000 hoops total</div></div>
+        </div>
+      </div>
+
+      <div class="status-navbar">
+        <button class="status-nbtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 11l9-8 9 8M5 10v10h5v-5h4v5h5V10"/></svg>Home</button>
+        <button class="status-nbtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>Feed</button>
+        <button class="status-nbtn active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="5"/><path d="M9 13l-2 7 5-3 5 3-2-7"/></svg>Status</button>
+        <button class="status-nbtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>Card</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════ PHONE 4: CARD + QR ════════════════════ -->
+<div class="device">
+  <div class="device-label">Card · QR</div>
+  <div class="phone">
+    <div class="card-screen">
+      <div class="notch"></div>
+      <div class="card-view">
+        <div class="sbar"><span>9:41</span><span style="font-family:Georgia,serif;font-size:12px;font-weight:800;">Loop</span><span>100%</span></div>
+        <div style="padding:2px 16px 13px;font-size:18px;font-weight:800;color:var(--ink);font-family:Georgia,serif;">Your card</div>
+
+        <div class="linked-card">
+          <div class="lcbg"></div>
+          <div class="lcc">
+            <div class="cchip"></div>
+            <div class="cnum">•••• •••• •••• 4471</div>
+            <div class="crow"><span>MAYA T.</span><span>08/29</span><span style="font-size:11px;font-weight:800;letter-spacing:0.1em;">VISA</span></div>
+          </div>
+        </div>
+
+        <div class="cstat-row"><span class="csl">Status</span><span class="csv green">Active &amp; linked</span></div>
+        <div class="cstat-row"><span class="csl">Used for</span><span class="csv">Earning hoops</span></div>
+        <div class="cstat-row"><span class="csl">Linked since</span><span class="csv">Mar 2026</span></div>
+
+        <div class="qr-sec">
+          <div class="qr-balance">Available to redeem<span>2,340 hoops</span></div>
+          <div class="qr-box">
+            <svg width="88" height="88" viewBox="0 0 88 88" xmlns="http://www.w3.org/2000/svg">
+              <rect width="88" height="88" fill="#1E4D3B"/>
+              <rect x="5" y="5" width="22" height="22" fill="none" stroke="#D4A843" stroke-width="2.5"/>
+              <rect x="9" y="9" width="14" height="14" fill="#D4A843"/>
+              <rect x="61" y="5" width="22" height="22" fill="none" stroke="#D4A843" stroke-width="2.5"/>
+              <rect x="65" y="9" width="14" height="14" fill="#D4A843"/>
+              <rect x="5" y="61" width="22" height="22" fill="none" stroke="#D4A843" stroke-width="2.5"/>
+              <rect x="9" y="65" width="14" height="14" fill="#D4A843"/>
+              <rect x="33" y="5" width="4" height="4" fill="#D4A843"/><rect x="39" y="5" width="4" height="4" fill="#D4A843"/><rect x="45" y="5" width="4" height="4" fill="#D4A843"/><rect x="51" y="5" width="4" height="4" fill="#D4A843"/>
+              <rect x="33" y="11" width="4" height="4" fill="#D4A843"/><rect x="45" y="11" width="4" height="4" fill="#D4A843"/>
+              <rect x="33" y="17" width="4" height="4" fill="#D4A843"/><rect x="39" y="17" width="4" height="4" fill="#D4A843"/><rect x="51" y="17" width="4" height="4" fill="#D4A843"/>
+              <rect x="5" y="33" width="4" height="4" fill="#D4A843"/><rect x="11" y="33" width="4" height="4" fill="#D4A843"/><rect x="21" y="33" width="4" height="4" fill="#D4A843"/>
+              <rect x="33" y="33" width="4" height="4" fill="#D4A843"/><rect x="45" y="33" width="4" height="4" fill="#D4A843"/><rect x="57" y="33" width="4" height="4" fill="#D4A843"/><rect x="69" y="33" width="4" height="4" fill="#D4A843"/><rect x="79" y="33" width="4" height="4" fill="#D4A843"/>
+              <rect x="5" y="39" width="4" height="4" fill="#D4A843"/><rect x="17" y="39" width="4" height="4" fill="#D4A843"/><rect x="27" y="39" width="4" height="4" fill="#D4A843"/><rect x="39" y="39" width="4" height="4" fill="#D4A843"/><rect x="51" y="39" width="4" height="4" fill="#D4A843"/><rect x="63" y="39" width="4" height="4" fill="#D4A843"/><rect x="75" y="39" width="4" height="4" fill="#D4A843"/>
+              <rect x="5" y="45" width="4" height="4" fill="#D4A843"/><rect x="15" y="45" width="4" height="4" fill="#D4A843"/><rect x="33" y="45" width="4" height="4" fill="#D4A843"/><rect x="45" y="45" width="4" height="4" fill="#D4A843"/><rect x="61" y="45" width="4" height="4" fill="#D4A843"/><rect x="73" y="45" width="4" height="4" fill="#D4A843"/>
+              <rect x="33" y="51" width="4" height="4" fill="#D4A843"/><rect x="43" y="51" width="4" height="4" fill="#D4A843"/><rect x="55" y="51" width="4" height="4" fill="#D4A843"/><rect x="67" y="51" width="4" height="4" fill="#D4A843"/><rect x="79" y="51" width="4" height="4" fill="#D4A843"/>
+              <rect x="33" y="61" width="4" height="4" fill="#D4A843"/><rect x="45" y="61" width="4" height="4" fill="#D4A843"/><rect x="57" y="61" width="4" height="4" fill="#D4A843"/><rect x="69" y="61" width="4" height="4" fill="#D4A843"/>
+              <rect x="33" y="69" width="4" height="4" fill="#D4A843"/><rect x="39" y="69" width="4" height="4" fill="#D4A843"/><rect x="51" y="69" width="4" height="4" fill="#D4A843"/><rect x="63" y="69" width="4" height="4" fill="#D4A843"/><rect x="75" y="69" width="4" height="4" fill="#D4A843"/>
+              <rect x="33" y="77" width="4" height="4" fill="#D4A843"/><rect x="47" y="77" width="4" height="4" fill="#D4A843"/><rect x="59" y="77" width="4" height="4" fill="#D4A843"/><rect x="71" y="77" width="4" height="4" fill="#D4A843"/>
+              <!-- Three hoop mark centred -->
+              <circle cx="42" cy="43" r="5.5" fill="none" stroke="#D4A843" stroke-width="1.4"/>
+              <circle cx="47" cy="43" r="5.5" fill="none" stroke="#D4A843" stroke-width="1.4"/>
+              <circle cx="44.5" cy="47.5" r="5.5" fill="none" stroke="#D4A843" stroke-width="1.4"/>
+            </svg>
+          </div>
+          <div class="qr-sub">Show this to your vendor to redeem hoops<br>against your current purchase</div>
+        </div>
+      </div>
+
+      <div class="navbar">
+        <button class="nbtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 11l9-8 9 8M5 10v10h5v-5h4v5h5V10"/></svg>Home</button>
+        <button class="nbtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>Feed</button>
+        <button class="nbtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="5"/><path d="M9 13l-2 7 5-3 5 3-2-7"/></svg>Status</button>
+        <button class="nbtn active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>Card</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function openSearch() { document.getElementById('search-overlay').classList.add('open'); }
+function closeSearch() { document.getElementById('search-overlay').classList.remove('open'); }
+
+function showListView(btn) {
+  document.querySelectorAll('.tbtn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('list-results').style.display = 'block';
+  document.getElementById('map-results').style.display = 'none';
+}
+function showMapView(btn) {
+  document.querySelectorAll('.tbtn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('list-results').style.display = 'none';
+  document.getElementById('map-results').style.display = 'block';
+}
+function setChip(chip) {
+  document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+  chip.classList.add('active');
+}
+function toggleCard(cardId, peekId, accId) {
+  const peek = document.getElementById(peekId);
+  const acc  = document.getElementById(accId);
+  const isOpen = peek.classList.contains('open');
+  if (isOpen) {
+    peek.classList.remove('open');
+    acc.classList.remove('open');
+  } else {
+    peek.classList.add('open');
+    acc.classList.add('open');
+  }
+}
+
+function openVendorProfile() {
+  const vp = document.getElementById('vendor-profile');
+  if(vp) { vp.style.display = 'flex'; }
+}
+function closeVendorProfile() {
+  document.getElementById('vendor-profile').style.display = 'none';
+  document.getElementById('vendor-profile').style.removeProperty('display');
+  document.getElementById('vendor-profile').style.display = 'none';
+}
+// Make map pins and vendor names clickable
+document.querySelectorAll('.map-pin, .vmap, .rname, .result-logo').forEach(el => {
+  el.style.cursor = 'pointer';
+  el.addEventListener('click', openVendorProfile);
+});
+</script>
+
+</body>
+</body>
+</html>

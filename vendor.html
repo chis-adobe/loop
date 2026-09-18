@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Loop — Vendor App v2</title>
+<style>
+:root {
+  --ink:#1E4D3B; --mid:#2E7D51; --gold:#D4A843; --gold-l:#E8C77A;
+  --cream:#F5F3EC; --white:#FFFFFF; --muted:#8B9E91; --dim:#4A5E52;
+  --line:#E4E0D4; --tint:#EDE9DC;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',Arial,sans-serif;
+  background:#C8C4B6;
+  display:flex;justify-content:center;align-items:flex-start;
+  padding:40px 20px 60px;min-height:100vh;gap:28px;flex-wrap:wrap;
+}
+
+/* ── DEVICE ── */
+.device{display:flex;flex-direction:column;align-items:center;gap:10px;}
+.device-label{font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#6B6357;}
+.phone{
+  width:300px;height:648px;background:#111;border-radius:44px;padding:9px;
+  box-shadow:0 28px 56px rgba(0,0,0,0.35),0 6px 18px rgba(0,0,0,0.2),inset 0 1px 0 rgba(255,255,255,0.06);
+  position:relative;flex-shrink:0;
+}
+.screen{width:100%;height:100%;background:var(--cream);border-radius:36px;overflow:hidden;position:relative;display:flex;flex-direction:column;}
+.notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:100px;height:24px;background:#111;border-radius:0 0 14px 14px;z-index:50;}
+
+/* ── TOPBAR ── */
+.topbar{
+  flex-shrink:0;padding:9px 0 0;
+  background:var(--ink);border-radius:27px 27px 0 0;
+  position:relative;z-index:10;
+}
+.topbar-notch-space{height:24px;}
+.topbar-content{padding:10px 16px 14px;display:flex;align-items:center;justify-content:space-between;}
+.topbar-brand{display:flex;align-items:center;gap:9px;}
+.topbar-logo{
+  width:30px;height:30px;border-radius:9px;background:var(--gold);
+  display:flex;align-items:center;justify-content:center;
+}
+.topbar-name{font-size:13px;font-weight:800;color:var(--white);font-family:Georgia,serif;}
+.topbar-venue{font-size:9.5px;color:rgba(255,255,255,0.5);margin-top:1px;}
+.topbar-tab-row{display:flex;gap:0;border-top:1px solid rgba(255,255,255,0.1);overflow-x:auto;}
+.topbar-tab-row::-webkit-scrollbar{display:none;}
+.ttab{
+  flex:1;padding:9px 4px;border:none;background:none;
+  font-size:10px;font-weight:700;color:rgba(255,255,255,0.45);
+  cursor:pointer;font-family:inherit;white-space:nowrap;
+  border-bottom:2px solid transparent;transition:all 0.15s;
+}
+.ttab.active{color:var(--gold);border-bottom-color:var(--gold);}
+
+/* ── VIEWS ── */
+.view{flex:1;display:none;flex-direction:column;overflow-y:auto;padding-bottom:16px;}
+.view.active{display:flex;}
+.view::-webkit-scrollbar{display:none;}
+
+/* ── AWARD VIEW ── */
+.award-header{padding:16px 16px 10px;}
+.award-eyebrow{font-size:9.5px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin-bottom:4px;}
+.award-title{font-size:19px;font-weight:800;color:var(--ink);font-family:Georgia,serif;}
+
+.action-list{display:flex;flex-direction:column;gap:8px;padding:0 14px;}
+.action-row{
+  display:flex;align-items:center;gap:11px;
+  background:var(--white);border:1.5px solid var(--line);
+  border-radius:14px;padding:12px 13px;cursor:pointer;
+  transition:all 0.15s;
+}
+.action-row.selected{background:var(--ink);border-color:var(--gold);}
+.action-icon{
+  width:40px;height:40px;border-radius:11px;background:var(--tint);
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;font-size:18px;
+}
+.action-row.selected .action-icon{background:rgba(255,255,255,0.12);}
+.action-body{flex:1;min-width:0;}
+.action-name{font-size:13px;font-weight:700;color:var(--ink);}
+.action-sub{font-size:10.5px;color:var(--muted);margin-top:1px;}
+.action-row.selected .action-name{color:var(--white);}
+.action-row.selected .action-sub{color:rgba(255,255,255,0.5);}
+.action-hoops{font-size:15px;font-weight:800;color:var(--mid);flex-shrink:0;font-family:Georgia,serif;}
+.action-row.selected .action-hoops{color:var(--gold-l);}
+.action-check{
+  width:20px;height:20px;border-radius:50%;border:1.5px solid var(--line);
+  flex-shrink:0;display:flex;align-items:center;justify-content:center;
+  transition:all 0.15s;
+}
+.action-row.selected .action-check{background:var(--gold);border-color:var(--gold);}
+.action-check svg{width:11px;height:11px;stroke:var(--ink);opacity:0;}
+.action-row.selected .action-check svg{opacity:1;}
+
+.confirm-bar{
+  margin:14px 14px 0;background:var(--gold);border-radius:14px;
+  padding:14px 16px;display:flex;align-items:center;justify-content:space-between;
+  cursor:pointer;border:none;font-family:inherit;width:calc(100% - 28px);
+  transition:opacity 0.15s;
+}
+.confirm-bar:hover{opacity:0.9;}
+.confirm-text{font-size:13.5px;font-weight:800;color:var(--ink);}
+.confirm-sub{font-size:10px;color:rgba(30,77,59,0.65);margin-top:2px;}
+
+/* Award success */
+.award-success{display:none;flex-direction:column;align-items:center;justify-content:center;flex:1;text-align:center;padding:40px 28px;}
+.award-success.show{display:flex;}
+.award-success-circle{
+  width:70px;height:70px;border-radius:50%;
+  position:relative;overflow:hidden;margin-bottom:18px;
+}
+.award-success-circle-bg{position:absolute;inset:0;background:var(--ink);}
+.award-success-circle-bg::before{content:'';position:absolute;width:80px;height:80px;border-radius:50%;background:radial-gradient(circle,#2E7D51 0%,transparent 70%);top:-20px;left:-20px;opacity:0.9;}
+.award-success-circle-bg::after{content:'';position:absolute;width:70px;height:70px;border-radius:50%;background:radial-gradient(circle,#2E7D51 0%,transparent 70%);bottom:-20px;right:-20px;opacity:0.8;}
+.award-success-circle svg{position:relative;z-index:1;}
+.award-success-title{font-size:18px;font-weight:800;color:var(--ink);font-family:Georgia,serif;}
+.award-success-sub{font-size:11.5px;color:var(--muted);margin-top:6px;line-height:1.6;}
+.award-success-hoops{
+  margin-top:18px;background:var(--tint);border-radius:28px;padding:9px 20px;
+  font-size:14px;font-weight:800;color:var(--dim);display:flex;align-items:center;gap:7px;
+}
+.award-again-btn{
+  margin-top:22px;background:none;border:1.5px solid var(--mid);color:var(--mid);
+  border-radius:12px;padding:11px 26px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit;
+}
+
+/* ── REDEEM VIEW ── */
+.redeem-header{padding:16px 16px 10px;}
+.redeem-section{padding:0 14px;margin-bottom:10px;}
+.section-label{font-size:9.5px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;color:var(--muted);margin-bottom:7px;}
+
+/* Blotchy customer card */
+.customer-card{
+  border-radius:16px;padding:15px 16px;position:relative;overflow:hidden;min-height:90px;margin-bottom:10px;
+}
+.customer-card-bg{position:absolute;inset:0;background:var(--ink);border-radius:16px;}
+.customer-card-bg::before{content:'';position:absolute;width:130px;height:130px;border-radius:50%;background:radial-gradient(circle,#2E7D51 0%,transparent 70%);top:-35px;right:-20px;opacity:0.85;}
+.customer-card-bg::after{content:'';position:absolute;width:100px;height:100px;border-radius:50%;background:radial-gradient(circle,#2E7D51 0%,transparent 70%);bottom:-25px;left:10px;opacity:0.7;}
+.customer-card-content{position:relative;z-index:1;}
+.cc-label{font-size:9px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:rgba(255,255,255,0.45);margin-bottom:4px;}
+.cc-name{font-size:14px;font-weight:800;color:var(--white);font-family:Georgia,serif;}
+.cc-card{font-size:10px;color:rgba(255,255,255,0.5);margin-top:2px;}
+.cc-balance-row{display:flex;align-items:center;gap:8px;margin-top:10px;}
+.cc-balance{font-size:22px;font-weight:800;color:var(--white);font-family:Georgia,serif;}
+.cc-balance-label{font-size:9.5px;color:var(--gold-l);font-weight:600;}
+
+/* QR scan area */
+.qr-scan-area{
+  background:var(--white);border-radius:14px;border:1.5px solid var(--line);
+  padding:16px;display:flex;flex-direction:column;align-items:center;gap:10px;
+  margin-bottom:10px;
+}
+.qr-scan-label{font-size:11px;font-weight:700;color:var(--ink);}
+.qr-scan-sub{font-size:9.5px;color:var(--muted);text-align:center;line-height:1.5;}
+.qr-frame{
+  width:90px;height:90px;border-radius:10px;background:var(--tint);
+  border:2px dashed var(--muted);display:flex;align-items:center;justify-content:center;
+  position:relative;
+}
+.qr-corner{position:absolute;width:14px;height:14px;border-color:var(--mid);border-style:solid;}
+.qr-corner.tl{top:4px;left:4px;border-width:2px 0 0 2px;}
+.qr-corner.tr{top:4px;right:4px;border-width:2px 2px 0 0;}
+.qr-corner.bl{bottom:4px;left:4px;border-width:0 0 2px 2px;}
+.qr-corner.br{bottom:4px;right:4px;border-width:0 2px 2px 0;}
+.scan-btn{
+  background:var(--mid);color:var(--white);border:none;border-radius:11px;
+  padding:10px 22px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;
+}
+
+/* Redemption summary */
+.redeem-summary{background:var(--tint);border-radius:14px;padding:13px 14px;margin-bottom:10px;}
+.rs-row{display:flex;justify-content:space-between;font-size:11.5px;padding:5px 0;color:var(--dim);}
+.rs-row.total{font-weight:800;font-size:13px;border-top:1px solid rgba(0,0,0,0.08);margin-top:4px;padding-top:9px;color:var(--ink);}
+.apply-btn{
+  background:var(--ink);color:var(--white);border:none;border-radius:13px;
+  padding:14px;font-size:13.5px;font-weight:800;width:100%;cursor:pointer;font-family:inherit;
+  display:block;
+}
+
+/* Redeem success */
+.redeem-success{display:none;flex-direction:column;align-items:center;justify-content:center;flex:1;text-align:center;padding:36px 24px;}
+.redeem-success.show{display:flex;}
+.rs-circle{width:64px;height:64px;border-radius:50%;background:var(--mid);display:flex;align-items:center;justify-content:center;margin-bottom:16px;}
+.rs-title{font-size:17px;font-weight:800;color:var(--ink);font-family:Georgia,serif;}
+.rs-sub{font-size:11px;color:var(--muted);margin-top:6px;line-height:1.6;}
+.rs-breakdown{
+  margin-top:16px;background:var(--tint);border-radius:14px;padding:12px 16px;width:100%;
+}
+.rs-b-row{display:flex;justify-content:space-between;font-size:11px;padding:4px 0;color:var(--dim);}
+.rs-b-row.highlight{font-weight:700;color:var(--mid);}
+.rs-new-btn{margin-top:18px;background:none;border:1.5px solid var(--mid);color:var(--mid);border-radius:11px;padding:10px 22px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;}
+
+/* ── DASHBOARD ── */
+.dash-header{padding:16px 16px 10px;}
+.dash-badge{
+  display:inline-flex;align-items:center;gap:5px;
+  background:var(--tint);border-radius:20px;padding:5px 11px;
+  font-size:9.5px;font-weight:700;color:var(--dim);margin-bottom:10px;
+}
+.stats-grid{display:flex;gap:7px;padding:0 14px;margin-bottom:10px;}
+.stat-card{flex:1;background:var(--white);border:1px solid var(--line);border-radius:13px;padding:11px 8px;text-align:center;}
+.stat-num{font-size:17px;font-weight:800;color:var(--ink);font-family:Georgia,serif;}
+.stat-label{font-size:8.5px;color:var(--muted);margin-top:2px;font-weight:600;}
+.dash-section{padding:0 14px;margin-bottom:10px;}
+.dash-section-title{font-size:11px;font-weight:700;color:var(--ink);margin-bottom:7px;}
+.bar-row{margin-bottom:10px;}
+.bar-top{display:flex;justify-content:space-between;font-size:10.5px;margin-bottom:4px;}
+.bar-name{color:var(--ink);font-weight:600;}
+.bar-val{color:var(--muted);}
+.bar-track{height:8px;background:var(--tint);border-radius:4px;overflow:hidden;}
+.bar-fill{height:100%;background:var(--gold);border-radius:4px;}
+.pool-card{background:var(--white);border:1px solid var(--line);border-radius:13px;padding:13px 14px;}
+.pool-row{display:flex;justify-content:space-between;align-items:center;font-size:11px;padding:5px 0;border-bottom:1px solid var(--tint);}
+.pool-row:last-child{border-bottom:none;}
+.pool-label{color:var(--muted);font-weight:600;}
+.pool-val{color:var(--ink);font-weight:700;}
+.pool-val.green{color:var(--mid);}
+.pool-bar-wrap{padding:8px 0 4px;}
+.pool-bar-track{height:7px;background:var(--tint);border-radius:4px;overflow:hidden;}
+.pool-bar-fill{height:100%;background:var(--mid);border-radius:4px;width:74%;}
+.pool-note{font-size:9px;color:var(--muted);margin-top:5px;line-height:1.5;}
+
+/* ── CONFIGURE ── */
+.config-header{padding:16px 16px 10px;}
+.config-list{display:flex;flex-direction:column;gap:8px;padding:0 14px;}
+.config-row{
+  display:flex;align-items:center;gap:10px;
+  background:var(--white);border:1px solid var(--line);border-radius:13px;padding:11px 12px;
+}
+.config-icon{width:34px;height:34px;border-radius:9px;background:var(--tint);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px;}
+.config-name{flex:1;font-size:12.5px;font-weight:700;color:var(--ink);}
+.config-hoops-wrap{display:flex;align-items:center;gap:4px;}
+.config-hoops-input{
+  width:46px;border:1px solid var(--line);border-radius:7px;padding:5px 4px;
+  text-align:center;font-size:13px;font-weight:800;color:var(--mid);font-family:Georgia,serif;
+  background:var(--tint);border:none;outline:none;
+}
+.config-hoops-unit{font-size:9.5px;color:var(--muted);font-weight:600;}
+.config-status{
+  display:inline-flex;align-items:center;gap:4px;font-size:8.5px;font-weight:700;
+  padding:3px 7px;border-radius:8px;margin-top:3px;
+}
+.config-status.approved{background:#EDF7F0;color:var(--mid);}
+.config-status.pending{background:#FFF8E6;color:#B8860B;}
+.config-add{
+  margin:8px 14px 0;background:none;border:1.5px dashed var(--line);color:var(--muted);
+  border-radius:13px;padding:12px;text-align:center;font-size:11.5px;font-weight:600;
+  cursor:pointer;font-family:inherit;width:calc(100% - 28px);
+}
+.config-note{margin:10px 14px 0;background:var(--tint);border-radius:11px;padding:10px 12px;font-size:9.5px;color:var(--dim);line-height:1.5;}
+</style>
+
+<style>
+.loop-nav{
+  position:fixed;bottom:0;left:0;right:0;z-index:9999;
+  background:#1E4D3B;display:flex;justify-content:space-around;
+  align-items:center;padding:10px 0 14px;
+  box-shadow:0 -2px 12px rgba(0,0,0,0.25);
+  font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif;
+}
+.loop-nav a{
+  color:rgba(255,255,255,0.5);font-size:10px;font-weight:700;
+  text-decoration:none;display:flex;flex-direction:column;align-items:center;gap:3px;
+  letter-spacing:0.05em;text-transform:uppercase;
+}
+.loop-nav a.active{color:#D4A843;}
+.loop-nav a svg{width:18px;height:18px;}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ PHONE 1: AWARD ═══════════════ -->
+<div class="device">
+  <div class="device-label">Award hoops</div>
+  <div class="phone">
+    <div class="screen">
+      <div class="notch"></div>
+      <div class="topbar">
+        <div class="topbar-notch-space"></div>
+        <div class="topbar-content">
+          <div class="topbar-brand">
+            <div class="topbar-logo">
+              <svg width="16" height="16" viewBox="0 0 34 34">
+                <circle cx="11" cy="12" r="8" fill="none" stroke="#1E4D3B" stroke-width="2.8"/>
+                <circle cx="23" cy="12" r="8" fill="none" stroke="#1E4D3B" stroke-width="2.8"/>
+                <circle cx="17" cy="23" r="8" fill="none" stroke="#1E4D3B" stroke-width="2.8"/>
+              </svg>
+            </div>
+            <div>
+              <div class="topbar-name">Loop</div>
+              <div class="topbar-venue">Riverside Coffee Co.</div>
+            </div>
+          </div>
+          <div style="font-size:9px;color:rgba(255,255,255,0.4);font-weight:600;">VENDOR</div>
+        </div>
+        <div class="topbar-tab-row">
+          <button class="ttab active" onclick="setTab(this,'award-main')">Award</button>
+          <button class="ttab" onclick="setTab(this,'redeem-main')">Redeem</button>
+
+        </div>
+      </div>
+
+      <!-- AWARD VIEW -->
+      <div class="view active" id="award-main">
+        <div id="award-form">
+          <div class="award-header">
+            <div class="award-eyebrow">Award hoops · checkout</div>
+            <div class="award-title">Which green action?</div>
+          </div>
+          <div class="action-list">
+            <div class="action-row selected" onclick="selectAction(this,10,'Reusable cup')">
+              <div class="action-icon">☕</div>
+              <div class="action-body">
+                <div class="action-name">Reusable cup</div>
+                <div class="action-sub">Customer brought their own cup</div>
+              </div>
+              <div class="action-hoops">+10</div>
+              <div class="action-check"><svg viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round"><path d="M5 13l4 4L19 7"/></svg></div>
+            </div>
+            <div class="action-row" onclick="selectAction(this,5,'Compostable lid skip')">
+              <div class="action-icon">🌿</div>
+              <div class="action-body">
+                <div class="action-name">Compostable lid skip</div>
+                <div class="action-sub">No lid requested</div>
+              </div>
+              <div class="action-hoops">+5</div>
+              <div class="action-check"><svg viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round"><path d="M5 13l4 4L19 7"/></svg></div>
+            </div>
+            <div class="action-row" onclick="selectAction(this,8,'Organic beans')">
+              <div class="action-icon">🌱</div>
+              <div class="action-body">
+                <div class="action-name">Organic beans</div>
+                <div class="action-sub">Customer chose certified organic bean option</div>
+              </div>
+              <div class="action-hoops">+8</div>
+              <div class="action-check"><svg viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round"><path d="M5 13l4 4L19 7"/></svg></div>
+            </div>
+            <div class="action-row" onclick="selectAction(this,2,'Dine in')">
+              <div class="action-icon">🪑</div>
+              <div class="action-body">
+                <div class="action-name">Dine in</div>
+                <div class="action-sub">Customer sitting in — real cups, less waste</div>
+              </div>
+              <div class="action-hoops">+2</div>
+              <div class="action-check"><svg viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round"><path d="M5 13l4 4L19 7"/></svg></div>
+            </div>
+          </div>
+          <button class="confirm-bar" id="confirm-bar" onclick="showAwardSuccess()">
+            <div>
+              <div class="confirm-text" id="confirm-text">Confirm · 10 hoops</div>
+              <div class="confirm-sub">Card ending 4471 · Maya T.</div>
+            </div>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1E4D3B" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+          </button>
+        </div>
+
+        <div class="award-success" id="award-success">
+          <div class="award-success-circle">
+            <div class="award-success-circle-bg"></div>
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" style="position:relative;z-index:1;"><path d="M5 13l4 4L19 7"/></svg>
+          </div>
+          <div class="award-success-title" id="success-title">10 hoops awarded</div>
+          <div class="award-success-sub">Credited to Maya T.'s account<br>matched via card ending 4471.</div>
+          <div class="award-success-hoops">
+            <svg width="18" height="18" viewBox="0 0 34 34"><circle cx="11" cy="12" r="8" fill="none" stroke="#4A5E52" stroke-width="2.4"/><circle cx="23" cy="12" r="8" fill="none" stroke="#4A5E52" stroke-width="2.4"/><circle cx="17" cy="23" r="8" fill="none" stroke="#4A5E52" stroke-width="2.4"/></svg>
+            Customer now has 2,350 hoops
+          </div>
+          <button class="award-again-btn" onclick="resetAward()">Award another</button>
+        </div>
+      </div>
+
+      <!-- REDEEM VIEW -->
+      <div class="view" id="redeem-main">
+        <div id="redeem-scan-state">
+          <div class="redeem-header">
+            <div class="award-eyebrow">Accept redemption · checkout</div>
+            <div class="award-title">Step 1: Select offer</div>
+          </div>
+          <div style="padding:0 14px;">
+            <div class="section-label" style="margin-bottom:8px;">What is the customer redeeming?</div>
+            <div style="display:flex;flex-direction:column;gap:7px;margin-bottom:14px;">
+              <div class="action-row" id="offer-1" onclick="selectOffer(this,500,'Free pastry')">
+                <div class="action-icon">🥐</div>
+                <div class="action-body"><div class="action-name">Free pastry</div><div class="action-sub">Any pastry from the daily bake</div></div>
+                <div class="action-hoops">500</div>
+                <div class="action-check"><svg viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round"><path d="M5 13l4 4L19 7"/></svg></div>
+              </div>
+              <div class="action-row" id="offer-2" onclick="selectOffer(this,400,'$5 off order')">
+                <div class="action-icon">💰</div>
+                <div class="action-body"><div class="action-name">$5 off order</div><div class="action-sub">Applied to current purchase total</div></div>
+                <div class="action-hoops">400</div>
+                <div class="action-check"><svg viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round"><path d="M5 13l4 4L19 7"/></svg></div>
+              </div>
+              <div class="action-row" id="offer-3" onclick="selectOffer(this,300,'Free cold brew')">
+                <div class="action-icon">🧋</div>
+                <div class="action-body"><div class="action-name">Summer: free cold brew</div><div class="action-sub">Active until Aug 31</div></div>
+                <div class="action-hoops">300</div>
+                <div class="action-check"><svg viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round"><path d="M5 13l4 4L19 7"/></svg></div>
+              </div>
+            </div>
+            <div style="font-size:9.5px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">Step 2: Scan customer QR</div>
+            <div class="qr-scan-area" style="padding:12px;">
+              <div class="qr-scan-label" id="scan-offer-label" style="color:var(--muted);">Select an offer above first</div>
+              <div class="qr-frame" style="width:72px;height:72px;margin:6px 0;">
+                <div class="qr-corner tl"></div><div class="qr-corner tr"></div>
+                <div class="qr-corner bl"></div><div class="qr-corner br"></div>
+                <svg width="26" height="26" viewBox="0 0 34 34"><circle cx="11" cy="12" r="8" fill="none" stroke="#8B9E91" stroke-width="2"/><circle cx="23" cy="12" r="8" fill="none" stroke="#8B9E91" stroke-width="2"/><circle cx="17" cy="23" r="8" fill="none" stroke="#8B9E91" stroke-width="2"/></svg>
+              </div>
+              <button class="scan-btn" id="scan-proceed-btn" onclick="showRedeemDetails()" style="opacity:0.35;pointer-events:none;font-size:11px;">Scan customer QR</button>
+              <div class="qr-sub">Customer: Loop app → Card tab → show QR code</div>
+            </div>
+          </div>
+        </div>
+
+        <div id="redeem-details-state" style="display:none;">
+          <div class="redeem-header">
+            <div class="award-eyebrow">Accept redemption · checkout</div>
+            <div class="award-title">Apply hoops</div>
+          </div>
+          <div class="redeem-section">
+            <div class="customer-card">
+              <div class="customer-card-bg"></div>
+              <div class="customer-card-content">
+                <div class="cc-label">Customer identified</div>
+                <div class="cc-name">Maya T.</div>
+                <div class="cc-card">Card ending 4471 · Sapling tier</div>
+                <div class="cc-balance-row">
+                  <svg width="22" height="22" viewBox="0 0 34 34"><circle cx="11" cy="12" r="8" fill="none" stroke="#D4A843" stroke-width="2.4"/><circle cx="23" cy="12" r="8" fill="none" stroke="#D4A843" stroke-width="2.4"/><circle cx="17" cy="23" r="8" fill="none" stroke="#D4A843" stroke-width="2.4"/></svg>
+                  <span class="cc-balance">2,340</span>
+                  <span class="cc-balance-label">hoops available</span>
+                </div>
+              </div>
+            </div>
+            <div class="redeem-summary">
+              <div class="rs-row"><span>Redeeming</span><span style="font-weight:700;" id="offer-name-display">Free pastry</span></div>
+              <div class="rs-row"><span>Hoops to deduct</span><span style="font-weight:700;color:var(--mid);" id="offer-hoops-display">500</span></div>
+              <div class="rs-row"><span>Customer balance after</span><span id="offer-balance-display">1,840 hoops</span></div>
+              <div class="rs-row total"><span>Customer pays</span><span>$0.40</span></div>
+            </div>
+            <button class="apply-btn" onclick="showRedeemSuccess()">Charge $0.40 · card ending 4471</button>
+          </div>
+        </div>
+
+        <div class="redeem-success" id="redeem-success-state">
+          <div class="rs-circle">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><path d="M5 13l4 4L19 7"/></svg>
+          </div>
+          <div class="rs-title">Redemption complete</div>
+          <div class="rs-sub" id="success-sub">Hoops redeemed successfully.</div>
+          <div class="rs-breakdown">
+            <div class="rs-b-row"><span>Hoops redeemed</span><span id="s-hoops">500</span></div>
+            <div class="rs-b-row highlight"><span>Your pool received (60%)</span><span id="s-you">+300</span></div>
+            <div class="rs-b-row highlight"><span>Awarding vendor received (40%)</span><span id="s-them">+200</span></div>
+            <div class="rs-b-row" style="padding-top:6px;border-top:1px solid rgba(0,0,0,0.07);margin-top:4px;"><span>Your pool balance</span><span style="font-weight:700;color:var(--ink);">4,016</span></div>
+          </div>
+          <button class="rs-new-btn" onclick="resetRedeem()">New redemption</button>
+        </div>
+      </div>
+
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+function setTab(btn, viewId) {
+  document.querySelectorAll('.ttab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById(viewId).classList.add('active');
+}
+
+let selectedHoops = 10;
+let selectedAction = 'Reusable cup';
+let selectedOfferHoops = 0;
+let selectedOfferName = '';
+
+function selectAction(el, hoops, name) {
+  document.querySelectorAll('.action-row').forEach(r => r.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedHoops = hoops;
+  selectedAction = name;
+  document.getElementById('confirm-text').textContent = 'Confirm · ' + hoops + ' hoops';
+}
+
+function showAwardSuccess() {
+  document.getElementById('award-form').style.display = 'none';
+  document.getElementById('success-title').textContent = selectedHoops + ' hoops awarded';
+  document.getElementById('award-success').classList.add('show');
+}
+
+function resetAward() {
+  document.getElementById('award-success').classList.remove('show');
+  document.getElementById('award-form').style.display = 'block';
+}
+
+function selectOffer(el, hoops, name) {
+  document.querySelectorAll('#redeem-scan-state .action-row').forEach(r => r.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedOfferHoops = hoops;
+  selectedOfferName = name;
+  const btn = document.getElementById('scan-proceed-btn');
+  btn.style.opacity = '1';
+  btn.style.pointerEvents = 'auto';
+  btn.textContent = 'Scan QR · ' + hoops + ' hoops to deduct';
+  const lbl = document.getElementById('scan-offer-label');
+  if(lbl) lbl.textContent = name + ' — ' + hoops + ' hoops will be deducted';
+  lbl.style.color = 'var(--ink)';
+}
+
+function showRedeemDetails() {
+  if (!selectedOfferHoops) { alert('Please select an offer first.'); return; }
+  document.getElementById('redeem-scan-state').style.display = 'none';
+  document.getElementById('redeem-details-state').style.display = 'block';
+  const n = document.getElementById('offer-name-display');
+  const ho = document.getElementById('offer-hoops-display');
+  const bal = document.getElementById('offer-balance-display');
+  if(n) n.textContent = selectedOfferName;
+  if(ho) ho.textContent = selectedOfferHoops;
+  if(bal) bal.textContent = (2340 - selectedOfferHoops).toLocaleString() + ' hoops';
+}
+
+function showRedeemSuccess() {
+  document.getElementById('redeem-details-state').style.display = 'none';
+  document.getElementById('redeem-success-state').classList.add('show');
+  var h = selectedOfferHoops || 500;
+  var you = Math.round(h * 0.6);
+  var them = Math.round(h * 0.4);
+  var el = document.getElementById('s-hoops'); if(el) el.textContent = h;
+  var el2 = document.getElementById('s-you'); if(el2) el2.textContent = '+' + you;
+  var el3 = document.getElementById('s-them'); if(el3) el3.textContent = '+' + them;
+  var sub = document.getElementById('success-sub');
+  if(sub) sub.textContent = selectedOfferName + ' — ' + h + ' hoops redeemed.';
+  var bal = document.getElementById('offer-balance-display');
+  if(bal) bal.textContent = (2340 - h).toLocaleString() + ' hoops';
+}
+
+function resetRedeem() {
+  document.getElementById('redeem-success-state').classList.remove('show');
+  document.getElementById('redeem-scan-state').style.display = 'block';
+}
+</script>
+</body>
+</html>

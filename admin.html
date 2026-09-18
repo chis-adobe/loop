@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Loop — Admin Portal</title>
+<style>
+:root {
+  --ink:#1E4D3B; --mid:#2E7D51; --gold:#D4A843; --gold-l:#E8C77A;
+  --cream:#F5F3EC; --white:#FFFFFF; --muted:#8B9E91; --dim:#4A5E52;
+  --line:#E4E0D4; --tint:#EDE9DC;
+  --bloom:#8B3A5A; --guardian:#0D5C78; --rooted:#1E4D3B; --seedling:#4A7C59;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',Arial,sans-serif;
+  background:#C8C4B6;
+  display:flex;justify-content:center;align-items:flex-start;
+  padding:40px 20px 60px;min-height:100vh;
+}
+
+/* ── IPAD FRAME ── */
+.ipad-wrap{display:flex;flex-direction:column;align-items:center;gap:14px;}
+.ipad-label{font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#6B6357;}
+.ipad{
+  width:900px;height:680px;
+  background:#1A1A1A;border-radius:28px;padding:10px;
+  box-shadow:0 32px 72px rgba(0,0,0,0.38),0 8px 24px rgba(0,0,0,0.22),inset 0 1px 0 rgba(255,255,255,0.06);
+}
+.ipad-screen{
+  width:100%;height:100%;background:var(--cream);
+  border-radius:20px;overflow:hidden;display:flex;
+}
+
+/* ── SIDEBAR ── */
+.sidebar{
+  width:200px;flex-shrink:0;background:var(--ink);
+  display:flex;flex-direction:column;overflow:hidden;
+}
+.sidebar-header{padding:20px 16px 14px;border-bottom:1px solid rgba(255,255,255,0.08);}
+.sidebar-logo{display:flex;align-items:center;gap:9px;margin-bottom:4px;}
+.sidebar-logo-mark{width:30px;height:30px;border-radius:9px;background:var(--gold);display:flex;align-items:center;justify-content:center;}
+.sidebar-brand{font-size:15px;font-weight:800;color:var(--white);font-family:Georgia,serif;}
+.sidebar-venue{font-size:9px;color:rgba(255,255,255,0.4);font-weight:600;margin-top:1px;}
+.sidebar-badge{display:inline-flex;align-items:center;gap:4px;background:rgba(212,168,67,0.15);border-radius:6px;padding:3px 8px;margin-top:8px;font-size:8.5px;font-weight:700;color:var(--gold);}
+
+.sidebar-nav{flex:1;overflow-y:auto;padding:10px 0;}
+.sidebar-nav::-webkit-scrollbar{display:none;}
+.nav-section-label{font-size:8.5px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.25);padding:12px 16px 4px;}
+.nav-item{
+  display:flex;align-items:center;gap:9px;
+  padding:9px 16px;cursor:pointer;border:none;background:none;
+  font-family:inherit;color:rgba(255,255,255,0.5);font-size:12px;font-weight:600;
+  width:100%;text-align:left;border-radius:0;transition:all 0.15s;
+}
+.nav-item:hover{color:rgba(255,255,255,0.8);background:rgba(255,255,255,0.04);}
+.nav-item.active{color:var(--white);background:rgba(255,255,255,0.08);}
+.nav-item.active .nav-dot{background:var(--gold);}
+.nav-dot{width:5px;height:5px;border-radius:50%;background:transparent;flex-shrink:0;}
+.nav-icon{width:16px;height:16px;flex-shrink:0;opacity:0.7;}
+.nav-item.active .nav-icon{opacity:1;}
+
+.sidebar-footer{padding:12px 16px;border-top:1px solid rgba(255,255,255,0.08);}
+.sidebar-user{display:flex;align-items:center;gap:8px;}
+.sidebar-avatar{width:28px;height:28px;border-radius:50%;background:var(--mid);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:var(--white);flex-shrink:0;font-family:Georgia,serif;}
+.sidebar-user-name{font-size:11px;font-weight:600;color:rgba(255,255,255,0.7);}
+.sidebar-user-role{font-size:9px;color:rgba(255,255,255,0.35);}
+
+/* ── MAIN CONTENT ── */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--cream);min-width:0;position:relative;}
+.main-header{
+  padding:18px 24px 14px;border-bottom:1px solid var(--line);
+  display:flex;align-items:center;justify-content:space-between;
+  flex-shrink:0;background:var(--white);
+}
+.main-title{font-size:18px;font-weight:800;color:var(--ink);font-family:Georgia,serif;}
+.main-sub{font-size:10.5px;color:var(--muted);margin-top:2px;}
+.header-actions{display:flex;gap:8px;align-items:center;}
+.header-period{font-size:10.5px;color:var(--dim);font-weight:600;background:var(--tint);padding:5px 12px;border-radius:8px;}
+.main-body{height:602px;overflow-y:scroll;}
+.main-body-inner{padding:20px 24px;}
+.main-body::-webkit-scrollbar{width:4px;display:none;}
+.main-body::-webkit-scrollbar-thumb{background:var(--line);border-radius:2px;}
+
+/* content sections */
+.content-section{display:none;min-height:100%;}
+.content-section.active{display:block;}
+
+/* ── STAT CARDS ── */
+.stats-row{display:flex;gap:12px;margin-bottom:18px;}
+.stat-card{flex:1;background:var(--white);border:1px solid var(--line);border-radius:14px;padding:14px 16px;}
+.stat-label{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--muted);margin-bottom:6px;}
+.stat-num{font-size:24px;font-weight:800;color:var(--ink);font-family:Georgia,serif;line-height:1;}
+.stat-change{font-size:10px;margin-top:4px;font-weight:600;}
+.stat-change.up{color:var(--mid);}
+.stat-change.down{color:#B03A2E;}
+
+/* ── CHARTS / BARS ── */
+.card{background:var(--white);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px;}
+.card-title{font-size:12px;font-weight:700;color:var(--ink);margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;}
+.card-sub{font-size:9.5px;color:var(--muted);font-weight:500;}
+.bar-row{display:flex;align-items:center;gap:10px;margin-bottom:9px;}
+.bar-label{font-size:10.5px;color:var(--dim);font-weight:600;width:140px;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.bar-track{flex:1;height:8px;background:var(--tint);border-radius:4px;overflow:hidden;}
+.bar-fill{height:100%;border-radius:4px;}
+.bar-val{font-size:10.5px;font-weight:700;color:var(--ink);width:44px;text-align:right;flex-shrink:0;}
+
+/* two-col grid */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
+
+/* pool card */
+.pool-detail-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--tint);font-size:11px;}
+.pool-detail-row:last-child{border-bottom:none;}
+.pool-detail-label{color:var(--muted);font-weight:600;}
+.pool-detail-val{color:var(--ink);font-weight:700;}
+.pool-detail-val.green{color:var(--mid);}
+.pool-big-bar{height:10px;background:var(--tint);border-radius:5px;margin:10px 0 6px;overflow:hidden;}
+.pool-big-fill{height:100%;background:linear-gradient(90deg,var(--mid),var(--gold));border-radius:5px;width:74%;}
+.split-row{display:flex;gap:8px;margin-top:10px;}
+.split-pill{flex:1;border-radius:10px;padding:10px 12px;text-align:center;}
+.split-pill-num{font-size:16px;font-weight:800;font-family:Georgia,serif;}
+.split-pill-label{font-size:9px;font-weight:600;margin-top:2px;}
+
+/* actions table */
+.action-table-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--tint);}
+.action-table-row:last-child{border-bottom:none;}
+.action-table-icon{width:32px;height:32px;border-radius:9px;background:var(--tint);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;}
+.action-table-name{flex:1;font-size:11.5px;font-weight:700;color:var(--ink);}
+.action-table-sub{font-size:9.5px;color:var(--muted);margin-top:1px;}
+.action-table-val{font-size:12px;font-weight:800;color:var(--mid);font-family:Georgia,serif;flex-shrink:0;}
+.status-pill{display:inline-flex;align-items:center;gap:4px;font-size:9px;font-weight:700;padding:3px 8px;border-radius:6px;flex-shrink:0;}
+.status-pill.approved{background:#EDF7F0;color:var(--mid);}
+.status-pill.pending{background:#FFF8E6;color:#B8860B;}
+.edit-btn{font-size:10px;font-weight:700;color:var(--mid);background:none;border:1px solid #B8DEC8;border-radius:7px;padding:4px 10px;cursor:pointer;font-family:inherit;flex-shrink:0;}
+
+/* promotions */
+.promo-card{background:var(--white);border:1px solid var(--line);border-radius:12px;padding:13px 14px;margin-bottom:10px;display:flex;align-items:flex-start;gap:12px;}
+.promo-icon{width:36px;height:36px;border-radius:10px;background:var(--tint);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.promo-body{flex:1;}
+.promo-name{font-size:12px;font-weight:700;color:var(--ink);}
+.promo-detail{font-size:10.5px;color:var(--muted);margin-top:2px;}
+.promo-meta{font-size:9.5px;color:var(--muted);margin-top:4px;}
+.promo-hoops{font-size:13px;font-weight:800;color:var(--gold);font-family:Georgia,serif;flex-shrink:0;}
+.active-tag{display:inline-flex;align-items:center;background:#EDF7F0;color:var(--mid);font-size:8.5px;font-weight:700;padding:2px 7px;border-radius:5px;margin-right:6px;}
+.add-promo-btn{width:100%;border:1.5px dashed var(--line);background:none;border-radius:12px;padding:12px;font-size:11.5px;font-weight:600;color:var(--muted);cursor:pointer;font-family:inherit;margin-top:4px;}
+
+/* analytics: flow */
+.flow-split{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
+.flow-item{display:flex;align-items:center;gap:9px;padding:8px 0;border-bottom:1px solid var(--tint);}
+.flow-item:last-child{border-bottom:none;}
+.flow-logo{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:var(--white);flex-shrink:0;font-family:Georgia,serif;}
+.flow-name{flex:1;font-size:10.5px;font-weight:600;color:var(--ink);}
+.flow-val{font-size:11px;font-weight:800;font-family:Georgia,serif;}
+.flow-val.out{color:#B03A2E;}
+.flow-val.in{color:var(--mid);}
+
+/* demographics */
+.demo-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+.demo-label{font-size:10.5px;color:var(--dim);font-weight:600;width:100px;flex-shrink:0;}
+.demo-track{flex:1;height:7px;background:var(--tint);border-radius:4px;overflow:hidden;}
+.demo-fill{height:100%;border-radius:4px;background:var(--mid);}
+.demo-pct{font-size:10px;font-weight:700;color:var(--ink);width:34px;text-align:right;flex-shrink:0;}
+.tier-demo-row{display:flex;gap:8px;}
+.tier-demo-pill{flex:1;border-radius:10px;padding:10px 8px;text-align:center;}
+.tier-demo-num{font-size:16px;font-weight:800;font-family:Georgia,serif;}
+.tier-demo-label{font-size:8.5px;font-weight:600;margin-top:2px;}
+
+/* network */
+.network-node{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--tint);}
+.network-node:last-child{border-bottom:none;}
+.network-logo{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:var(--white);flex-shrink:0;font-family:Georgia,serif;}
+.network-body{flex:1;}
+.network-name{font-size:11px;font-weight:700;color:var(--ink);}
+.network-sub{font-size:9.5px;color:var(--muted);margin-top:1px;}
+.network-badge{font-size:9px;font-weight:700;padding:2px 7px;border-radius:5px;flex-shrink:0;}
+.network-badge.mutual{background:#EDF7F0;color:var(--mid);}
+.network-badge.receiver{background:#EEF8FC;color:var(--guardian);}
+.network-badge.sender{background:var(--tint);color:var(--dim);}
+</style>
+
+<style>
+.loop-nav{
+  position:fixed;bottom:0;left:0;right:0;z-index:9999;
+  background:#1E4D3B;display:flex;justify-content:space-around;
+  align-items:center;padding:10px 0 14px;
+  box-shadow:0 -2px 12px rgba(0,0,0,0.25);
+  font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif;
+}
+.loop-nav a{
+  color:rgba(255,255,255,0.5);font-size:10px;font-weight:700;
+  text-decoration:none;display:flex;flex-direction:column;align-items:center;gap:3px;
+  letter-spacing:0.05em;text-transform:uppercase;
+}
+.loop-nav a.active{color:#D4A843;}
+.loop-nav a svg{width:18px;height:18px;}
+</style>
+</head>
+<body>
+<div class="ipad-wrap">
+  <div class="ipad-label">Admin portal — iPad</div>
+  <div class="ipad">
+    <div class="ipad-screen">
+
+      <!-- ── SIDEBAR ── -->
+      <div class="sidebar">
+        <div class="sidebar-header">
+          <div class="sidebar-logo">
+            <div class="sidebar-logo-mark">
+              <svg width="16" height="16" viewBox="0 0 34 34"><circle cx="11" cy="12" r="8" fill="none" stroke="#1E4D3B" stroke-width="2.8"/><circle cx="23" cy="12" r="8" fill="none" stroke="#1E4D3B" stroke-width="2.8"/><circle cx="17" cy="23" r="8" fill="none" stroke="#1E4D3B" stroke-width="2.8"/></svg>
+            </div>
+            <div>
+              <div class="sidebar-brand">Loop</div>
+              <div class="sidebar-venue">Admin Portal</div>
+            </div>
+          </div>
+          <div class="sidebar-badge">✓ Riverside Coffee Co.</div>
+        </div>
+
+        <div class="sidebar-nav">
+          <div class="nav-section-label">Management</div>
+          <button class="nav-item active" onclick="showSection('overview',this)">
+            <div class="nav-dot"></div>
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+            Overview
+          </button>
+          <button class="nav-item" onclick="showSection('profile',this)">
+            <div class="nav-dot"></div>
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            Profile
+          </button>
+          <button class="nav-item" onclick="showSection('actions',this)">
+            <div class="nav-dot"></div>
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg>
+            Actions
+          </button>
+          <button class="nav-item" onclick="showSection('promotions',this)">
+            <div class="nav-dot"></div>
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 12V22H4V12"/><path d="M22 7H2v5h20V7z"/><path d="M12 22V7"/><path d="M12 7H7.5a2.5 2.5 0 010-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 000-5C13 2 12 7 12 7z"/></svg>
+            Promotions
+          </button>
+
+          <div class="nav-section-label">Analytics</div>
+          <button class="nav-item" onclick="showSection('hoop-flow',this)">
+            <div class="nav-dot"></div>
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="9" r="5"/><circle cx="15" cy="15" r="5"/><path d="M9 14v5M15 5v5"/></svg>
+            Hoop flow
+          </button>
+          <button class="nav-item" onclick="showSection('customers',this)">
+            <div class="nav-dot"></div>
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+            Customers
+          </button>
+          <button class="nav-item" onclick="showSection('action-analytics',this)">
+            <div class="nav-dot"></div>
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+            Action analytics
+          </button>
+          <button class="nav-item" onclick="showSection('network',this)">
+            <div class="nav-dot"></div>
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="5" r="2"/><circle cx="5" cy="19" r="2"/><circle cx="19" cy="19" r="2"/><path d="M12 7v4M5.7 17.5l5.3-6.5M18.3 17.5L13 11"/></svg>
+            Network
+          </button>
+        </div>
+
+        <div class="sidebar-footer">
+          <div class="sidebar-user">
+            <div class="sidebar-avatar">J</div>
+            <div>
+              <div class="sidebar-user-name">Jamie Chen</div>
+              <div class="sidebar-user-role">Store manager</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── MAIN CONTENT ── -->
+      <div class="main">
+
+        <!-- OVERVIEW -->
+        <div class="main-body">
+        <div class="content-section active" id="sec-overview">
+          <div class="main-header">
+            <div><div class="main-title">Overview</div><div class="main-sub">Riverside Coffee Co. · This month</div></div>
+            <div class="header-actions"><div class="header-period">June 2026</div></div>
+          </div>
+          <div class="main-body-inner">
+            <div class="stats-row">
+              <div class="stat-card"><div class="stat-label">Hoops issued</div><div class="stat-num">1,284</div><div class="stat-change up">↑ 18% vs last month</div></div>
+              <div class="stat-card"><div class="stat-label">Hoops redeemed</div><div class="stat-num">812</div><div class="stat-change up">↑ 24% vs last month</div></div>
+              <div class="stat-card"><div class="stat-label">New Loop customers</div><div class="stat-num">47</div><div class="stat-change up">↑ 9 vs last month</div></div>
+              <div class="stat-card"><div class="stat-label">Pool balance</div><div class="stat-num">4,016</div><div class="stat-change up">↑ 300 from splits</div></div>
+            </div>
+
+            <div class="two-col">
+              <div class="card">
+                <div class="card-title">Hoop pool health <span class="card-sub">74% remaining</span></div>
+                <div class="pool-big-bar"><div class="pool-big-fill"></div></div>
+                <div class="pool-detail-row"><span class="pool-detail-label">Starter allocation</span><span class="pool-detail-val">5,000</span></div>
+                <div class="pool-detail-row"><span class="pool-detail-label">Issued</span><span class="pool-detail-val">−1,284</span></div>
+                <div class="pool-detail-row"><span class="pool-detail-label">Returned via splits</span><span class="pool-detail-val green">+300</span></div>
+                <div class="pool-detail-row"><span class="pool-detail-label">Balance</span><span class="pool-detail-val green">4,016</span></div>
+                <div class="split-row">
+                  <div class="split-pill" style="background:#EDF7F0;"><div class="split-pill-num" style="color:var(--mid);">60%</div><div class="split-pill-label" style="color:var(--mid);">you keep when redeemed here</div></div>
+                  <div class="split-pill" style="background:var(--tint);"><div class="split-pill-num" style="color:var(--dim);">40%</div><div class="split-pill-label" style="color:var(--dim);">returned to issuing vendor</div></div>
+                </div>
+              </div>
+              <div class="card">
+                <div class="card-title">Top actions this month</div>
+                <div class="bar-row"><span class="bar-label">Reusable cup</span><div class="bar-track"><div class="bar-fill" style="width:78%;background:var(--gold);"></div></div><span class="bar-val">612</span></div>
+                <div class="bar-row"><span class="bar-label">Organic beans</span><div class="bar-track"><div class="bar-fill" style="width:42%;background:var(--mid);"></div></div><span class="bar-val">228</span></div>
+                <div class="bar-row"><span class="bar-label">Dine in</span><div class="bar-track"><div class="bar-fill" style="width:30%;background:var(--dim);"></div></div><span class="bar-val">164</span></div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-title">Monthly trend <span class="card-sub">Hoops issued vs redeemed</span></div>
+              <svg width="100%" height="80" viewBox="0 0 580 80">
+                <!-- Grid lines -->
+                <line x1="0" y1="20" x2="580" y2="20" stroke="#E4E0D4" stroke-width="0.5"/>
+                <line x1="0" y1="40" x2="580" y2="40" stroke="#E4E0D4" stroke-width="0.5"/>
+                <line x1="0" y1="60" x2="580" y2="60" stroke="#E4E0D4" stroke-width="0.5"/>
+                <!-- Issued line -->
+                <polyline points="40,55 120,45 200,38 280,30 360,25 440,18 520,14" fill="none" stroke="#D4A843" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <!-- Redeemed line -->
+                <polyline points="40,70 120,62 200,55 280,48 360,42 440,36 520,28" fill="none" stroke="#2E7D51" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <!-- Month labels -->
+                <text x="40" y="78" text-anchor="middle" font-size="8" fill="#8B9E91">Jan</text>
+                <text x="120" y="78" text-anchor="middle" font-size="8" fill="#8B9E91">Feb</text>
+                <text x="200" y="78" text-anchor="middle" font-size="8" fill="#8B9E91">Mar</text>
+                <text x="280" y="78" text-anchor="middle" font-size="8" fill="#8B9E91">Apr</text>
+                <text x="360" y="78" text-anchor="middle" font-size="8" fill="#8B9E91">May</text>
+                <text x="440" y="78" text-anchor="middle" font-size="8" fill="#8B9E91">Jun</text>
+              </svg>
+              <div style="display:flex;gap:16px;margin-top:4px;">
+                <div style="display:flex;align-items:center;gap:5px;font-size:9.5px;color:var(--dim);"><div style="width:12px;height:3px;background:var(--gold);border-radius:2px;"></div>Issued</div>
+                <div style="display:flex;align-items:center;gap:5px;font-size:9.5px;color:var(--dim);"><div style="width:12px;height:3px;background:var(--mid);border-radius:2px;"></div>Redeemed</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ACTIONS -->
+        <div class="content-section" id="sec-actions">
+          <div class="main-header">
+            <div><div class="main-title">Green actions</div><div class="main-sub">Configure what customers earn hoops for</div></div>
+            <div class="header-actions"><button style="background:var(--gold);color:var(--ink);border:none;border-radius:9px;padding:7px 14px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;">+ Propose action</button></div>
+          </div>
+          <div class="main-body-inner">
+            <div class="card">
+              <div class="card-title">Approved actions <span class="card-sub">Loop-reviewed hoop values</span></div>
+              <div class="action-table-row">
+                <div class="action-table-icon">☕</div>
+                <div style="flex:1;"><div class="action-table-name">Reusable cup</div><div class="action-table-sub">Customer brings their own cup for any beverage</div></div>
+                <div class="action-table-val">+10 hoops</div>
+                <div class="status-pill approved">✓ Approved</div>
+                <button class="edit-btn">Edit</button>
+              </div>
+              <div class="action-table-row">
+                <div class="action-table-icon">🌱</div>
+                <div style="flex:1;"><div class="action-table-name">Organic beans</div><div class="action-table-sub">Customer requests certified organic bean option</div></div>
+                <div class="action-table-val">+8 hoops</div>
+                <div class="status-pill approved">✓ Approved</div>
+                <button class="edit-btn">Edit</button>
+              </div>
+              <div class="action-table-row">
+                <div class="action-table-icon">🪑</div>
+                <div style="flex:1;"><div class="action-table-name">Dine in</div><div class="action-table-sub">Customer chooses to sit in and use real cups</div></div>
+                <div class="action-table-val">+2 hoops</div>
+                <div class="status-pill approved">✓ Approved</div>
+                <button class="edit-btn">Edit</button>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-title">Pending approval <span class="card-sub">Awaiting Loop review</span></div>
+              <div class="action-table-row">
+                <div class="action-table-icon">♻️</div>
+                <div style="flex:1;"><div class="action-table-name">Grounds composting</div><div class="action-table-sub">Customer takes used coffee grounds for home composting</div></div>
+                <div class="action-table-val">+20 hoops</div>
+                <div class="status-pill pending">⏳ Under review</div>
+                <button class="edit-btn" style="opacity:0.4;cursor:default;">Edit</button>
+              </div>
+            </div>
+            <div class="card" style="background:var(--tint);border-color:transparent;">
+              <div style="font-size:11px;font-weight:700;color:var(--ink);margin-bottom:4px;">How hoop values are set</div>
+              <div style="font-size:10.5px;color:var(--dim);line-height:1.6;">Loop reviews all proposed green actions and sets maximum hoop values per category to keep the currency consistent across the network. You can propose any value — Loop will approve at or below the category maximum. Actions that require significant customer effort (like battery recycling) earn more than passive choices.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PROMOTIONS -->
+        <div class="content-section" id="sec-promotions">
+          <div class="main-header">
+            <div><div class="main-title">Promotions</div><div class="main-sub">What customers can redeem their hoops for</div></div>
+            <div class="header-actions"><button style="background:var(--gold);color:var(--ink);border:none;border-radius:9px;padding:7px 14px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;">+ Add promotion</button></div>
+          </div>
+          <div class="main-body-inner">
+            <div class="card">
+              <div class="card-title">Active promotions <span class="card-sub">Visible on your vendor profile</span></div>
+              <div class="promo-card">
+                <div class="promo-icon">🥐</div>
+                <div class="promo-body">
+                  <div class="promo-name"><span class="active-tag">ACTIVE</span>Free pastry</div>
+                  <div class="promo-detail">Any pastry from our daily bake — applied at checkout via QR scan</div>
+                  <div class="promo-meta">No expiry · Redeemed 38 times this month</div>
+                </div>
+                <div><div class="promo-hoops">500 hoops</div><button class="edit-btn" style="margin-top:6px;display:block;">Edit</button></div>
+              </div>
+              <div class="promo-card">
+                <div class="promo-icon">💰</div>
+                <div class="promo-body">
+                  <div class="promo-name"><span class="active-tag">ACTIVE</span>$5 off your order</div>
+                  <div class="promo-detail">Applied automatically at checkout — any item</div>
+                  <div class="promo-meta">No expiry · Redeemed 51 times this month</div>
+                </div>
+                <div><div class="promo-hoops">400 hoops</div><button class="edit-btn" style="margin-top:6px;display:block;">Edit</button></div>
+              </div>
+              <div class="promo-card" style="border-color:#B8DEC8;background:#F5FDF7;">
+                <div class="promo-icon">🧋</div>
+                <div class="promo-body">
+                  <div class="promo-name"><span class="active-tag">ACTIVE</span>Summer special: free cold brew</div>
+                  <div class="promo-detail">Limited-time summer promotion — any size cold brew</div>
+                  <div class="promo-meta">Expires Aug 31 · Redeemed 12 times</div>
+                </div>
+                <div><div class="promo-hoops">300 hoops</div><button class="edit-btn" style="margin-top:6px;display:block;">Edit</button></div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-title">Inactive <span class="card-sub">Not currently visible to customers</span></div>
+              <div class="promo-card" style="opacity:0.5;">
+                <div class="promo-icon">🎄</div>
+                <div class="promo-body">
+                  <div class="promo-name">Holiday special: free hot chocolate</div>
+                  <div class="promo-meta">Expired Dec 31 · Redeemed 94 times</div>
+                </div>
+                <div><div class="promo-hoops" style="color:var(--muted);">350 hoops</div><button class="edit-btn" style="margin-top:6px;display:block;">Reactivate</button></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- HOOP FLOW -->
+        <div class="content-section" id="sec-hoop-flow">
+          <div class="main-header">
+            <div><div class="main-title">Hoop flow</div><div class="main-sub">Where your hoops travel across the network</div></div>
+            <div class="header-actions"><div class="header-period">Last 30 days</div></div>
+          </div>
+          <div class="main-body-inner">
+            <div class="stats-row">
+              <div class="stat-card"><div class="stat-label">Hoops issued here</div><div class="stat-num">1,284</div><div class="stat-change up">↑ 18%</div></div>
+              <div class="stat-card"><div class="stat-label">Redeemed at other vendors</div><div class="stat-num">612</div><div class="stat-change" style="color:var(--dim);">47% of issued</div></div>
+              <div class="stat-card"><div class="stat-label">Foreign hoops redeemed here</div><div class="stat-num">812</div><div class="stat-change up">↑ 24%</div></div>
+              <div class="stat-card"><div class="stat-label">Net hoop flow</div><div class="stat-num" style="color:var(--mid);">+200</div><div class="stat-change up">Net receiver</div></div>
+            </div>
+            <div class="flow-split">
+              <div class="card">
+                <div class="card-title">Your hoops spent elsewhere <span class="card-sub">Where customers redeem</span></div>
+                <div class="flow-item"><div class="flow-logo" style="background:#1E4D3B;">E</div><div class="flow-name">EcoDepot Recycling</div><div class="flow-val out">−187</div></div>
+                <div class="flow-item"><div class="flow-logo" style="background:#4A7C59;">G</div><div class="flow-name">Green Grocer Market</div><div class="flow-val out">−142</div></div>
+                <div class="flow-item"><div class="flow-logo" style="background:#0D5C78;">M</div><div class="flow-name">Metro Transit</div><div class="flow-val out">−98</div></div>
+                <div class="flow-item"><div class="flow-logo" style="background:#8B3A5A;">B</div><div class="flow-name">Bloom Yoga Studio</div><div class="flow-val out">−74</div></div>
+                <div class="flow-item"><div class="flow-logo" style="background:#4A7C59;">P</div><div class="flow-name">Pedal Works Bike Shop</div><div class="flow-val out">−111</div></div>
+              </div>
+              <div class="card">
+                <div class="card-title">Hoops redeemed here <span class="card-sub">Where visiting customers earned</span></div>
+                <div class="flow-item"><div class="flow-logo" style="background:#4A7C59;">G</div><div class="flow-name">Green Grocer Market</div><div class="flow-val in">+254</div></div>
+                <div class="flow-item"><div class="flow-logo" style="background:#1E4D3B;">E</div><div class="flow-name">EcoDepot Recycling</div><div class="flow-val in">+198</div></div>
+                <div class="flow-item"><div class="flow-logo" style="background:#0D5C78;">M</div><div class="flow-name">Metro Transit</div><div class="flow-val in">+167</div></div>
+                <div class="flow-item"><div class="flow-logo" style="background:#2E7D51;">F</div><div class="flow-name">Fieldwork Brewing Co.</div><div class="flow-val in">+112</div></div>
+                <div class="flow-item"><div class="flow-logo" style="background:#4A7C59;">P</div><div class="flow-name">Pedal Works Bike Shop</div><div class="flow-val in">+81</div></div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-title">Hoop journey <span class="card-sub">Of hoops issued here, where do they end up?</span></div>
+              <div class="bar-row"><span class="bar-label">Still held (unspent)</span><div class="bar-track"><div class="bar-fill" style="width:53%;background:#B8DEC8;"></div></div><span class="bar-val">672</span></div>
+              <div class="bar-row"><span class="bar-label">EcoDepot Recycling</span><div class="bar-track"><div class="bar-fill" style="width:15%;background:var(--mid);"></div></div><span class="bar-val">187</span></div>
+              <div class="bar-row"><span class="bar-label">Green Grocer Market</span><div class="bar-track"><div class="bar-fill" style="width:11%;background:var(--mid);"></div></div><span class="bar-val">142</span></div>
+              <div class="bar-row"><span class="bar-label">Pedal Works</span><div class="bar-track"><div class="bar-fill" style="width:9%;background:var(--gold);"></div></div><span class="bar-val">111</span></div>
+              <div class="bar-row"><span class="bar-label">Other vendors</span><div class="bar-track"><div class="bar-fill" style="width:14%;background:var(--line);"></div></div><span class="bar-val">172</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- CUSTOMERS -->
+        <div class="content-section" id="sec-customers">
+          <div class="main-header">
+            <div><div class="main-title">Customers</div><div class="main-sub">Who your Loop customers are</div></div>
+            <div class="header-actions"><div class="header-period">Last 30 days</div></div>
+          </div>
+          <div class="main-body-inner">
+            <div class="stats-row">
+              <div class="stat-card"><div class="stat-label">Total Loop customers</div><div class="stat-num">284</div><div class="stat-change up">↑ 47 new</div></div>
+              <div class="stat-card"><div class="stat-label">Repeat visitors</div><div class="stat-num">68%</div><div class="stat-change up">↑ 4% vs last month</div></div>
+              <div class="stat-card"><div class="stat-label">Avg visits / customer</div><div class="stat-num">4.2</div><div class="stat-change up">↑ 0.6</div></div>
+              <div class="stat-card"><div class="stat-label">Avg hoops / visit</div><div class="stat-num">9.8</div><div class="stat-change" style="color:var(--dim);">Stable</div></div>
+            </div>
+            <div class="two-col">
+              <div class="card">
+                <div class="card-title">Tier distribution</div>
+                <div class="tier-demo-row">
+                  <div class="tier-demo-pill" style="background:#EFF7F2;"><div class="tier-demo-num" style="color:var(--seedling);">142</div><div class="tier-demo-label" style="color:var(--seedling);">Seedling</div></div>
+                  <div class="tier-demo-pill" style="background:#E8F5EE;"><div class="tier-demo-num" style="color:var(--rooted);">89</div><div class="tier-demo-label" style="color:var(--rooted);">Rooted</div></div>
+                  <div class="tier-demo-pill" style="background:#FDF0F5;"><div class="tier-demo-num" style="color:var(--bloom);">38</div><div class="tier-demo-label" style="color:var(--bloom);">Bloom</div></div>
+                  <div class="tier-demo-pill" style="background:#EEF8FC;"><div class="tier-demo-num" style="color:var(--guardian);">15</div><div class="tier-demo-label" style="color:var(--guardian);">Guardian</div></div>
+                </div>
+                <div style="margin-top:10px;font-size:10px;color:var(--muted);line-height:1.5;">Rooted+ customers spend 2.4× more per visit and redeem hoops 3× more often than Seedlings.</div>
+              </div>
+              <div class="card">
+                <div class="card-title">How they found you</div>
+                <div class="demo-row"><span class="demo-label">Loop map / search</span><div class="demo-track"><div class="demo-fill" style="width:42%;"></div></div><span class="demo-pct">42%</span></div>
+                <div class="demo-row"><span class="demo-label">Friend's feed</span><div class="demo-track"><div class="demo-fill" style="width:31%;"></div></div><span class="demo-pct">31%</span></div>
+                <div class="demo-row"><span class="demo-label">Walk-in</span><div class="demo-track"><div class="demo-fill" style="width:18%;background:var(--gold);"></div></div><span class="demo-pct">18%</span></div>
+                <div class="demo-row"><span class="demo-label">Other vendor</span><div class="demo-track"><div class="demo-fill" style="width:9%;background:var(--dim);"></div></div><span class="demo-pct">9%</span></div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-title">Visit frequency distribution <span class="card-sub">Visits per customer this month</span></div>
+              <div class="bar-row"><span class="bar-label">1 visit</span><div class="bar-track"><div class="bar-fill" style="width:28%;background:#B8DEC8;"></div></div><span class="bar-val">79</span></div>
+              <div class="bar-row"><span class="bar-label">2–3 visits</span><div class="bar-track"><div class="bar-fill" style="width:42%;background:var(--mid);"></div></div><span class="bar-val">119</span></div>
+              <div class="bar-row"><span class="bar-label">4–6 visits</span><div class="bar-track"><div class="bar-fill" style="width:22%;background:var(--gold);"></div></div><span class="bar-val">63</span></div>
+              <div class="bar-row"><span class="bar-label">7+ visits</span><div class="bar-track"><div class="bar-fill" style="width:8%;background:var(--ink);"></div></div><span class="bar-val">23</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ACTION ANALYTICS -->
+        <div class="content-section" id="sec-action-analytics">
+          <div class="main-header">
+            <div><div class="main-title">Action analytics</div><div class="main-sub">Which green actions drive the most value</div></div>
+            <div class="header-actions"><div class="header-period">Last 30 days</div></div>
+          </div>
+          <div class="main-body-inner">
+            <div class="stats-row">
+              <div class="stat-card"><div class="stat-label">Most awarded</div><div class="stat-num" style="font-size:17px;">Reusable cup</div><div class="stat-change up">612 this month</div></div>
+              <div class="stat-card"><div class="stat-label">Highest redemption rate</div><div class="stat-num" style="font-size:17px;">Organic beans</div><div class="stat-change up">84% redeemed</div></div>
+              <div class="stat-card"><div class="stat-label">Best repeat rate</div><div class="stat-num" style="font-size:17px;">Reusable cup</div><div class="stat-change up">3.8× avg</div></div>
+              <div class="stat-card"><div class="stat-label">Most hoarded</div><div class="stat-num" style="font-size:17px;">Dine in</div><div class="stat-change" style="color:var(--dim);">61% unspent</div></div>
+            </div>
+            <div class="two-col">
+              <div class="card">
+                <div class="card-title">Redemption rate by action <span class="card-sub">% of earned hoops actually spent</span></div>
+                <div class="bar-row"><span class="bar-label">Organic beans</span><div class="bar-track"><div class="bar-fill" style="width:84%;background:var(--mid);"></div></div><span class="bar-val">84%</span></div>
+                <div class="bar-row"><span class="bar-label">Reusable cup</span><div class="bar-track"><div class="bar-fill" style="width:71%;background:var(--gold);"></div></div><span class="bar-val">71%</span></div>
+                <div class="bar-row"><span class="bar-label">Dine in</span><div class="bar-track"><div class="bar-fill" style="width:39%;background:#B8DEC8;"></div></div><span class="bar-val">39%</span></div>
+              </div>
+              <div class="card">
+                <div class="card-title">Repeat action rate <span class="card-sub">Avg times per customer per month</span></div>
+                <div class="bar-row"><span class="bar-label">Reusable cup</span><div class="bar-track"><div class="bar-fill" style="width:76%;background:var(--gold);"></div></div><span class="bar-val">3.8×</span></div>
+                <div class="bar-row"><span class="bar-label">Dine in</span><div class="bar-track"><div class="bar-fill" style="width:50%;background:var(--mid);"></div></div><span class="bar-val">2.5×</span></div>
+                <div class="bar-row"><span class="bar-label">Organic beans</span><div class="bar-track"><div class="bar-fill" style="width:28%;background:#B8DEC8;"></div></div><span class="bar-val">1.4×</span></div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-title">Habit formation <span class="card-sub">Customers who started an action and kept it up (streak rate)</span></div>
+              <div class="bar-row"><span class="bar-label">Reusable cup — 7-day streak</span><div class="bar-track"><div class="bar-fill" style="width:64%;background:var(--gold);"></div></div><span class="bar-val">64%</span></div>
+              <div class="bar-row"><span class="bar-label">Reusable cup — 30-day streak</span><div class="bar-track"><div class="bar-fill" style="width:41%;background:var(--gold);"></div></div><span class="bar-val">41%</span></div>
+              <div class="bar-row"><span class="bar-label">Dine in — 7-day streak</span><div class="bar-track"><div class="bar-fill" style="width:38%;background:var(--mid);"></div></div><span class="bar-val">38%</span></div>
+              <div class="bar-row"><span class="bar-label">Organic beans — 7-day streak</span><div class="bar-track"><div class="bar-fill" style="width:22%;background:#B8DEC8;"></div></div><span class="bar-val">22%</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- NETWORK -->
+        <div class="content-section" id="sec-network">
+          <div class="main-header">
+            <div><div class="main-title">Network</div><div class="main-sub">Your place in the local Loop ecosystem</div></div>
+            <div class="header-actions"><div class="header-period">Vancouver district</div></div>
+          </div>
+          <div class="main-body-inner">
+            <div class="stats-row">
+              <div class="stat-card"><div class="stat-label">Vendors in your district</div><div class="stat-num">24</div><div class="stat-change up">↑ 3 new this month</div></div>
+              <div class="stat-card"><div class="stat-label">Shared customers</div><div class="stat-num">168</div><div class="stat-change up">59% of your base</div></div>
+              <div class="stat-card"><div class="stat-label">Your network rank</div><div class="stat-num">#3</div><div class="stat-change up">by hoops issued</div></div>
+              <div class="stat-card"><div class="stat-label">Cross-promo reach</div><div class="stat-num">1,840</div><div class="stat-change up">customers exposed</div></div>
+            </div>
+            <div class="two-col">
+              <div class="card">
+                <div class="card-title">Mutual vendors <span class="card-sub">You both send and receive customers</span></div>
+                <div class="network-node"><div class="network-logo" style="background:#4A7C59;">G</div><div class="network-body"><div class="network-name">Green Grocer Market</div><div class="network-sub">142 shared customers · strong overlap</div></div><div class="network-badge mutual">Mutual</div></div>
+                <div class="network-node"><div class="network-logo" style="background:#1E4D3B;">E</div><div class="network-body"><div class="network-name">EcoDepot Recycling</div><div class="network-sub">98 shared customers · weekly overlap</div></div><div class="network-badge mutual">Mutual</div></div>
+                <div class="network-node"><div class="network-logo" style="background:#4A7C59;">P</div><div class="network-body"><div class="network-name">Pedal Works Bike Shop</div><div class="network-sub">67 shared customers · weekend overlap</div></div><div class="network-badge mutual">Mutual</div></div>
+              </div>
+              <div class="card">
+                <div class="card-title">Net flow vendors <span class="card-sub">Mostly one-directional traffic</span></div>
+                <div class="network-node"><div class="network-logo" style="background:#0D5C78;">M</div><div class="network-body"><div class="network-name">Metro Transit</div><div class="network-sub">Sends customers to you · high volume</div></div><div class="network-badge receiver">You receive</div></div>
+                <div class="network-node"><div class="network-logo" style="background:#2E7D51;">F</div><div class="network-body"><div class="network-name">Fieldwork Brewing Co.</div><div class="network-sub">Sends customers to you · evening traffic</div></div><div class="network-badge receiver">You receive</div></div>
+                <div class="network-node"><div class="network-logo" style="background:#8B3A5A;">B</div><div class="network-body"><div class="network-name">Bloom Yoga Studio</div><div class="network-sub">Your customers visit them · morning cross</div></div><div class="network-badge sender">You send</div></div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-title">Cross-promotion opportunity <span class="card-sub">New vendors nearby you don't yet share customers with</span></div>
+              <div class="network-node"><div class="network-logo" style="background:#4A7C59;">H</div><div class="network-body"><div class="network-name">Harbour Organics</div><div class="network-sub">Joined 2 weeks ago · 0.4km · grocery</div></div><button style="font-size:9.5px;font-weight:700;color:var(--mid);background:#EDF7F0;border:none;border-radius:7px;padding:4px 10px;cursor:pointer;font-family:inherit;flex-shrink:0;">Explore</button></div>
+              <div class="network-node"><div class="network-logo" style="background:#0D5C78;">W</div><div class="network-body"><div class="network-name">Waterfront Kombucha</div><div class="network-sub">Joined last month · 0.7km · café</div></div><button style="font-size:9.5px;font-weight:700;color:var(--mid);background:#EDF7F0;border:none;border-radius:7px;padding:4px 10px;cursor:pointer;font-family:inherit;flex-shrink:0;">Explore</button></div>
+            </div>
+          </div>
+        </div>
+
+
+        <!-- PROFILE -->
+        <div class="content-section" id="sec-profile">
+          <div class="main-header">
+            <div><div class="main-title">Business profile</div><div class="main-sub">What customers see on your Loop vendor page</div></div>
+            <div class="header-actions"><button style="background:var(--gold);color:var(--ink);border:none;border-radius:9px;padding:7px 14px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;">Save changes</button></div>
+          </div>
+          <div class="main-body-inner">
+
+            <!-- Identity -->
+            <div class="card" style="margin-bottom:14px;">
+              <div class="card-title">Business identity</div>
+              <div style="display:grid;grid-template-columns:80px 1fr;gap:16px;align-items:start;">
+                <div>
+                  <div style="width:72px;height:72px;border-radius:16px;background:var(--ink);display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:800;color:var(--gold);font-family:Georgia,serif;position:relative;overflow:hidden;">
+                    <div style="position:absolute;inset:0;background:radial-gradient(circle at 30% 30%,#2E7D51,#1E4D3B);"></div>
+                    <span style="position:relative;z-index:1;">R</span>
+                  </div>
+                  <div style="font-size:9px;color:var(--muted);margin-top:6px;text-align:center;cursor:pointer;font-weight:600;">Change logo</div>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:10px;">
+                  <div>
+                    <div style="font-size:10px;font-weight:700;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.05em;">Business name</div>
+                    <div style="background:var(--tint);border-radius:9px;padding:9px 12px;font-size:12.5px;font-weight:700;color:var(--ink);">Riverside Coffee Co.</div>
+                  </div>
+                  <div>
+                    <div style="font-size:10px;font-weight:700;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.05em;">Category</div>
+                    <div style="background:var(--tint);border-radius:9px;padding:9px 12px;font-size:12px;color:var(--ink);">Coffee · Café</div>
+                  </div>
+                </div>
+              </div>
+              <div style="margin-top:12px;">
+                <div style="font-size:10px;font-weight:700;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.05em;">About your business</div>
+                <div style="background:var(--tint);border-radius:9px;padding:10px 12px;font-size:11.5px;color:var(--ink);line-height:1.6;min-height:60px;">A neighbourhood coffee shop committed to reducing waste. We compost all coffee grounds, source beans from certified sustainable farms, and partner with local bike couriers for all deliveries.</div>
+                <div style="font-size:9px;color:var(--muted);margin-top:4px;">Shown on your vendor profile page</div>
+              </div>
+            </div>
+
+            <!-- Locations -->
+            <div class="card" style="margin-bottom:14px;">
+              <div class="card-title">Locations <button style="font-size:10px;font-weight:700;color:var(--mid);background:none;border:1px solid #B8DEC8;border-radius:7px;padding:3px 10px;cursor:pointer;font-family:inherit;">+ Add location</button></div>
+              <div style="display:flex;flex-direction:column;gap:10px;">
+                <div style="background:var(--white);border:1px solid var(--line);border-radius:12px;padding:12px 14px;">
+                  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+                    <div style="font-size:12px;font-weight:700;color:var(--ink);">Main location</div>
+                    <div style="font-size:9px;font-weight:700;color:var(--mid);background:#EDF7F0;padding:2px 8px;border-radius:5px;">Primary</div>
+                  </div>
+                  <div style="font-size:11px;color:var(--dim);margin-bottom:4px;">📍 128 Water St, Vancouver, BC V6B 1A1</div>
+                  <div style="font-size:11px;color:var(--muted);">Mon–Fri 7:00am–6:00pm · Sat–Sun 8:00am–5:00pm</div>
+                </div>
+                <div style="background:var(--white);border:1px solid var(--line);border-radius:12px;padding:12px 14px;">
+                  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+                    <div style="font-size:12px;font-weight:700;color:var(--ink);">Kitsilano outpost</div>
+                    <button style="font-size:9.5px;color:var(--muted);background:none;border:1px solid var(--line);border-radius:6px;padding:2px 8px;cursor:pointer;font-family:inherit;">Edit</button>
+                  </div>
+                  <div style="font-size:11px;color:var(--dim);margin-bottom:4px;">📍 2186 W 4th Ave, Vancouver, BC V6K 1N7</div>
+                  <div style="font-size:11px;color:var(--muted);">Daily 7:30am–5:00pm</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Green initiatives -->
+            <div class="card" style="margin-bottom:14px;">
+              <div class="card-title">Green initiatives <span class="card-sub">Loop verifies each claim before badging it</span></div>
+              <div style="display:flex;flex-direction:column;gap:9px;margin-bottom:12px;">
+
+                <!-- Verified -->
+                <div style="display:flex;align-items:flex-start;gap:11px;background:var(--white);border:1px solid #B8DEC8;border-radius:12px;padding:11px 13px;">
+                  <div style="width:32px;height:32px;border-radius:9px;background:#EDF7F0;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">☀️</div>
+                  <div style="flex:1;">
+                    <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px;">
+                      <span style="font-size:11.5px;font-weight:700;color:var(--ink);">Solar-powered store</span>
+                      <span style="font-size:8.5px;font-weight:700;color:var(--mid);background:#EDF7F0;padding:2px 7px;border-radius:5px;">✓ Verified</span>
+                    </div>
+                    <div style="font-size:10px;color:var(--muted);">100% of store electricity from rooftop solar since June 2024</div>
+                  </div>
+                </div>
+
+                <div style="display:flex;align-items:flex-start;gap:11px;background:var(--white);border:1px solid #B8DEC8;border-radius:12px;padding:11px 13px;">
+                  <div style="width:32px;height:32px;border-radius:9px;background:#EDF7F0;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">🌱</div>
+                  <div style="flex:1;">
+                    <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px;">
+                      <span style="font-size:11.5px;font-weight:700;color:var(--ink);">100% compostable packaging</span>
+                      <span style="font-size:8.5px;font-weight:700;color:var(--mid);background:#EDF7F0;padding:2px 7px;border-radius:5px;">✓ Verified</span>
+                    </div>
+                    <div style="font-size:10px;color:var(--muted);">All cups, lids, bags, and food containers are certified compostable</div>
+                  </div>
+                </div>
+
+                <div style="display:flex;align-items:flex-start;gap:11px;background:var(--white);border:1px solid #B8DEC8;border-radius:12px;padding:11px 13px;">
+                  <div style="width:32px;height:32px;border-radius:9px;background:#EDF7F0;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">🚲</div>
+                  <div style="flex:1;">
+                    <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px;">
+                      <span style="font-size:11.5px;font-weight:700;color:var(--ink);">Bike-only delivery</span>
+                      <span style="font-size:8.5px;font-weight:700;color:var(--mid);background:#EDF7F0;padding:2px 7px;border-radius:5px;">✓ Verified</span>
+                    </div>
+                    <div style="font-size:10px;color:var(--muted);">All deliveries via Mobi Bike Share couriers — zero vehicle emissions</div>
+                  </div>
+                </div>
+
+                <!-- Pending -->
+                <div style="display:flex;align-items:flex-start;gap:11px;background:#FAFAF8;border:1px solid var(--line);border-radius:12px;padding:11px 13px;opacity:0.7;">
+                  <div style="width:32px;height:32px;border-radius:9px;background:var(--tint);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">♻️</div>
+                  <div style="flex:1;">
+                    <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px;">
+                      <span style="font-size:11.5px;font-weight:700;color:var(--ink);">Coffee grounds composting program</span>
+                      <span style="font-size:8.5px;font-weight:700;color:#B8860B;background:#FFF8E6;padding:2px 7px;border-radius:5px;">⏳ Under review</span>
+                    </div>
+                    <div style="font-size:10px;color:var(--muted);">Used grounds collected daily by city composting service</div>
+                    <div style="font-size:9.5px;color:#B8860B;margin-top:3px;">Loop is verifying your documentation · typically 3–5 business days</div>
+                  </div>
+                </div>
+
+                <div style="display:flex;align-items:flex-start;gap:11px;background:#FAFAF8;border:1px solid var(--line);border-radius:12px;padding:11px 13px;opacity:0.7;">
+                  <div style="width:32px;height:32px;border-radius:9px;background:var(--tint);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">🌾</div>
+                  <div style="flex:1;">
+                    <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px;">
+                      <span style="font-size:11.5px;font-weight:700;color:var(--ink);">Certified sustainable bean sourcing</span>
+                      <span style="font-size:8.5px;font-weight:700;color:#B8860B;background:#FFF8E6;padding:2px 7px;border-radius:5px;">⏳ Under review</span>
+                    </div>
+                    <div style="font-size:10px;color:var(--muted);">All beans sourced from Rainforest Alliance certified farms</div>
+                    <div style="font-size:9.5px;color:#B8860B;margin-top:3px;">Submitted 3 days ago</div>
+                  </div>
+                </div>
+
+              </div>
+              <button style="width:100%;border:1.5px dashed var(--line);background:none;border-radius:12px;padding:11px;font-size:11.5px;font-weight:600;color:var(--muted);cursor:pointer;font-family:inherit;">+ Propose new green initiative</button>
+              <div style="margin-top:10px;background:var(--tint);border-radius:10px;padding:10px 12px;font-size:10px;color:var(--dim);line-height:1.5;">Loop verifies all green initiatives before displaying them as badges on your vendor profile. Verified initiatives build customer trust and strengthen your Loop-verified green vendor status.</div>
+            </div>
+
+          </div>
+        </div>
+
+        </div><!-- /main-body -->
+      </div><!-- /main -->
+    </div><!-- /ipad-screen -->
+  </div><!-- /ipad -->
+</div>
+
+<script>
+function showSection(id, btn) {
+  document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('sec-' + id).classList.add('active');
+  btn.classList.add('active');
+}
+</script>
+</body>
+</html>
